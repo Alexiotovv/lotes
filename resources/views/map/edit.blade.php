@@ -1,33 +1,14 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-  <meta charset="UTF-8">
-  <title>Editar Plano en Mapa</title>
-  <!-- ENLACE LOCAL para Leaflet CSS -->
-  <link rel="stylesheet" href="{{ asset('css/leaflet-plugins/leaflet.css') }}" />
-  <!-- ENLACE LOCAL para CSS de DistortableImage -->
-  <link rel="stylesheet" href="{{ asset('dist/leaflet.distortableimage.css') }}" />
-  <style>
-    #map { height: 90vh; width: 100%; }
-    body { margin: 0; font-family: sans-serif; }
-    #guardar {
-        position: absolute;
-        bottom: 20px;
-        left: 50%;
-        transform: translateX(-50%);
-        z-index: 1000;
-        padding: 10px 20px;
-        font-size: 16px;
-        cursor: pointer;
-        background-color: #007bff;
-        color: white;
-        border: none;
-        border-radius: 5px;
-        box-shadow: 0 2px 5px rgba(0,0,0,0.2);
-    }
-  </style>
-</head>
-<body>
+@extends('layouts.app')
+
+@section('css')
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<style>
+    #map { height: 600px; }
+</style>
+@endsection
+@section('content')
+    
+
 
 <h3 style="text-align:center">🗺️ Editor de Imagen del Mapa</h3>
 
@@ -41,6 +22,11 @@
   <div id="map"></div>
   <button id="guardar">💾 Guardar posición</button>
 @endif
+
+@endsection
+
+
+@section('scripts')
 
 
 <!-- ENLACE LOCAL para Leaflet JS (¡PRIMERO!) -->
@@ -129,5 +115,4 @@ document.getElementById('guardar').addEventListener('click', () => {
 </script>
 @endif
 
-</body>
-</html>
+@endsection
