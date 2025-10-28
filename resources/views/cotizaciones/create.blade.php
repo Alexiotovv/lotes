@@ -1,0 +1,322 @@
+@extends('layouts.app')
+
+@section('css')
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+<link href="https://cdn.jsdelivr.net/npm/select2-bootstrap-5-theme@1.3.0/dist/select2-bootstrap-5-theme.min.css" rel="stylesheet" />
+<link href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css" rel="stylesheet">
+@endsection
+
+@section('content')
+<h3>Registrar Cotización</h3>
+
+{{-- @include('cotizaciones.form') --}}
+
+<form action="{{ route('cotizaciones.store') }}" method="POST" id="formCotizacion">
+    @csrf
+<div class="row g-2">
+    <!-- Cliente -->
+        <div class="col-md-4">
+            <label>Cliente *</label>
+            <select name="cliente_id" class="form-select select2" required>
+                <option value="">Seleccione</option>
+                @foreach($clientes as $c)
+                <option value="{{ $c->id }}">{{ $c->nombre_cliente }}</option>
+                @endforeach
+            </select>
+        </div>
+        
+        <!-- Método de Pago (como relación) -->
+        <div class="col-md-4">
+            <label>Método de Pago *</label>
+            <select name="metodopago_id" class="form-select" required>
+                <option value="">Seleccione</option>
+                @foreach($metodos as $m)
+                <option value="{{ $m->id }}">{{ $m->nombre }}</option>
+                @endforeach
+            </select>
+        </div>
+
+        <!-- Fecha Pago -->
+        <div class="col-md-4">
+            <label>Fecha Pago *</label>
+            <input type="date" name="fecha_pago" class="form-control" value="{{ date('Y-m-d') }}" required>
+        </div>
+        
+        
+        <div class="col-md-3">
+            <label>Buscar Lote</label>
+            <select id="loteSelect" class="form-select select2">
+                <option value="">Seleccione un lote</option>
+                @foreach($lotes as $lote)
+                <option value="{{ $lote->id }}" 
+                    data-aream2="{{ $lote->area_m2 }}"
+                    data-preciom2="{{ $lote->precio_m2 }}"
+                    data-precio="{{ $lote->precio_m2 * $lote->area_m2 }}"
+                    data-desc="{{ $lote->codigo }} - {{ $lote->nombre }}">
+                    {{ $lote->codigo }} - {{ $lote->nombre }}
+                </option>
+                @endforeach
+            </select>
+        </div>
+        
+        
+        <!-- N° Cuotas e Inicial -->
+        <div class="col-md-3">
+            <label>N° Cuotas</label>
+            <input type="number" name="numero_cuotas" class="form-control" min="1">
+        </div>
+        <div class="col-md-3">
+            <label>Inicial (S/)</label>
+            <input type="number" step="0.01" name="inicial" class="form-control" value="0" required>
+        </div>
+        
+        <!-- Selector de tasa + campo oculto para enviar valor -->
+        <div class="col-md-3">
+            <label>Tasa de Interés (TEA)</label>
+            <select id="tasaSelect" class="form-select">
+                <option value="0.12">12.00%</option>
+                <option value="0.15">15.00%</option>
+                <option value="0.18">18.00%</option>
+                <option value="0.00">0% (Sin interés)</option>
+            </select>
+            <!-- Campo oculto para enviar al backend -->
+            <input type="hidden" name="tasa_interes" id="tasaInteresInput" value="0.12">
+        </div>
+        
+        <!-- Campos derivados del lote -->
+        <div class="col-md-3">
+            <label>Área m²</label>
+            <input type="text" id="area_m2" class="form-control" readonly>
+        </div>
+        <div class="col-md-3">
+            <label>Precio m²</label>
+            <input type="text" id="precio_m2" class="form-control" readonly>
+        </div>
+        <div class="col-md-3">
+            <label>Precio Total</label>
+            <input type="text" id="precio_lote" class="form-control" readonly>
+        </div>
+        <div class="col-md-3">
+            <label>Observaciones</label>
+            <textarea id="observacionesLote" class="form-control" rows="2" placeholder="Notas adicionales (opcional)"></textarea>
+        </div>
+        
+        <div class="col-md-2 d-flex align-items-end">
+            <button type="button" id="btnAgregar" class="btn btn-primary btn-sm w-100">➕ Agregar</button>
+        </div>
+    </div>
+    
+    <!-- Mostrar tasa y cuota -->
+    <div class="row mt-3 mb-3 p-3 bg-light rounded">
+        <div class="col-md-6">
+            <label class="form-label fw-bold">Tasa de interés:</label>
+            <div id="tasaMostrada" class="fs-5">12.00%</div>
+        </div>
+        <div class="col-md-6">
+            <label class="form-label fw-bold">Cuota mensual estimada:</label>
+            <div id="cuotaMostrada" class="fs-5 text-success">S/ --</div>
+        </div>
+    </div>
+    <hr>
+    
+    <table class="table table-bordered mt-3">
+        <thead>
+            <tr>
+                <th>Lote</th>
+                <th>Precio (S/)</th>
+                <th>Cliente</th>
+                <th>Método Pago</th>
+                <th>Fecha Pago</th>
+                <th>N° Cuotas</th>
+                <th>Inicial (S/)</th>
+                <th>TasaInterés</th>
+                 <th>Obs.</th> 
+                <th>Acción</th>
+            </tr>
+        </thead>
+        <tbody id="detalleTabla">
+            <tr><td colspan="8" class="text-center text-muted">Sin lotes agregados</td></tr>
+        </tbody>
+    </table>
+
+    <button type="submit" class="btn btn-outline-success btn-sm mt-3" id="btnGuardar" disabled>💾 Guardar</button>
+    <a href="{{ route('cotizaciones.index') }}" class="btn btn-outline-secondary btn-sm mt-3">↩️ Volver</a>
+</form>
+@endsection
+
+
+@section('scripts')
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+    <!-- Toastr -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
+    <script>
+        $(document).ready(function() {
+            
+            $('.select2').select2({ theme: 'bootstrap-5', width: '100%' });
+
+            // Actualizar campo oculto de tasa al cambiar el select
+            $('#tasaSelect').on('change', function() {
+                const tea = $(this).val(); // "0.12", "0.15", etc.
+                $('#tasaInteresInput').val(tea); // Asigna al hidden
+                $('#tasaMostrada').text((parseFloat(tea) * 100).toFixed(2) + '%');
+                recalcularCuota();
+            });
+
+            // Mostrar precio del lote
+            $('#loteSelect').on('change', function() {
+                const opt = $(this).find(':selected');
+                const precio = opt.data('precio');
+                if (precio) {
+                    $('#precio_lote').val(parseFloat(precio).toLocaleString('es-PE', { minimumFractionDigits: 2 }));
+                    $('#area_m2').val(opt.data('aream2'));
+                    $('#precio_m2').val(opt.data('preciom2'));
+                } else {
+                    $('#precio_lote, #area_m2, #precio_m2').val('');
+                }
+                recalcularCuota();
+            });
+
+            // Recalcular al cambiar inicial o cuotas
+            $('input[name="inicial"], input[name="numero_cuotas"]').on('input change', recalcularCuota);
+
+            function recalcularCuota() {
+                const precioStr = $('#precio_lote').val();
+                const precio = precioStr ? parseFloat(precioStr.replace(/,/g, '')) : 0;
+                const inicial = parseFloat($('input[name="inicial"]').val()) || 0;
+                const nCuotas = parseInt($('input[name="numero_cuotas"]').val()) || 0;
+                const tea = parseFloat($('#tasaInteresInput').val());
+
+                const montoFinanciar = Math.max(0, precio - inicial);
+                if (nCuotas > 0 && montoFinanciar > 0) {
+                    if (tea > 0) {
+                        const tem = Math.pow(1 + tea, 1/12) - 1;
+                        const cuota = (montoFinanciar * tem * Math.pow(1 + tem, nCuotas)) / (Math.pow(1 + tem, nCuotas) - 1);
+                        $('#cuotaMostrada').text('S/ ' + cuota.toLocaleString('es-PE', { minimumFractionDigits: 2, maximumFractionDigits: 2 }));
+                    } else {
+                        const cuota = montoFinanciar / nCuotas;
+                        $('#cuotaMostrada').text('S/ ' + cuota.toLocaleString('es-PE', { minimumFractionDigits: 2, maximumFractionDigits: 2 }));
+                    }
+                } else {
+                    $('#cuotaMostrada').text('S/ --');
+                }
+            }
+
+            // === Agregar a la tabla ===
+            let detalles = [];
+
+            $('#btnAgregar').on('click', function() {
+                const loteId = $('#loteSelect').val();
+                if (!loteId) { toastr.warning('Seleccione un lote.'); return; }
+                if (detalles.some(d => d.lote_id == loteId)) { toastr.warning('Lote ya agregado.'); return; }
+
+                const clienteId = $('select[name="cliente_id"]').val();
+                if (!clienteId) { toastr.warning('Seleccione un cliente.'); return; }
+
+                const metodoPagoId = $('select[name="metodopago_id"]').val();
+                if (!metodoPagoId) { toastr.warning('Seleccione método de pago.'); return; }
+
+                const fechaPago = $('input[name="fecha_pago"]').val();
+                const nCuotas = $('input[name="numero_cuotas"]').val();
+                const inicial = parseFloat($('input[name="inicial"]').val()) || 0;
+                const tea = parseFloat($('#tasaInteresInput').val());
+                const observaciones = $('#observacionesLote').val().trim();
+
+                const precioStr = $('#precio_lote').val();
+                const precio = precioStr ? parseFloat(precioStr.replace(/,/g, '')) : 0;
+                const montoFinanciar = Math.max(0, precio - inicial);
+
+                if (nCuotas === '' || parseInt(nCuotas) < 1) {
+                    toastr.warning('N° de cuotas debe ser ≥ 1.');
+                    return;
+                }
+
+                // Calcular cuota
+                let cuota = 0;
+                if (montoFinanciar > 0 && nCuotas > 0) {
+                    if (tea > 0) {
+                        const tem = Math.pow(1 + tea, 1/12) - 1;
+                        cuota = (montoFinanciar * tem * Math.pow(1 + tem, nCuotas)) / (Math.pow(1 + tem, nCuotas) - 1);
+                    } else {
+                        cuota = montoFinanciar / nCuotas;
+                    }
+                }
+
+                detalles.push({
+                    lote_id: loteId,
+                    descripcion: $('#loteSelect option:selected').text(),
+                    precio: precio,
+                    cliente_id: clienteId,
+                    cliente_nombre: $('select[name="cliente_id"] option:selected').text(),
+                    metodopago_id: metodoPagoId,
+                    metodopago_nombre: $('select[name="metodopago_id"] option:selected').text(),
+                    fecha_pago: fechaPago,
+                    numero_cuotas: nCuotas,
+                    inicial: inicial,
+                    tasa_interes: tea,
+                    monto_financiar: montoFinanciar,
+                    cuota: cuota,
+                    observaciones: observaciones // ← ¡Nuevo!
+                });
+
+                renderTabla();
+                $('#loteSelect').val('').trigger('change');
+                $('#precio_lote, #area_m2, #precio_m2').val('');
+                
+            });
+
+            function renderTabla() {
+                const tbody = $('#detalleTabla');
+                if (detalles.length === 0) {
+                    tbody.html('<tr><td colspan="9" class="text-center text-muted">Sin lotes agregados</td></tr>');
+                    $('#btnGuardar').prop('disabled', true);
+                    return;
+                }
+
+                let filas = '';
+                detalles.forEach((d, i) => {
+                    const obs = d.observaciones ? d.observaciones : '—';
+                    filas += `
+                    <tr>
+                        <td>${d.descripcion}<input type="hidden" name="detalles[${i}][lote_id]" value="${d.lote_id}"></td>
+                        <td>S/ ${d.precio.toLocaleString('es-PE', { minimumFractionDigits: 2 })}</td>
+                        <td>${d.cliente_nombre}</td>
+                        <td>${d.metodopago_nombre}</td>
+                        <td>${d.fecha_pago}</td>
+                        <td>${d.numero_cuotas}</td>
+                        <td>S/ ${d.inicial.toFixed(2)}</td>
+                        <td>${(d.tasa_interes * 100).toFixed(2)}%</td>
+                        <td title="${obs}">${obs.length > 20 ? obs.substring(0, 20) + '…' : obs}</td> <!-- Muestra resumen -->
+                        <td class="text-center">
+                            <button type="button" class="btn btn-outline-danger btn-sm" onclick="eliminarDetalle(${i})">🗑️</button>
+                        </td>
+                        <!-- Campo oculto para enviar observaciones -->
+                        <input type="hidden" name="detalles[${i}][observaciones]" value="${d.observaciones || ''}">
+                    </tr>`;
+                });
+
+                tbody.html(filas);
+                $('#btnGuardar').prop('disabled', false);
+            }
+
+            window.eliminarDetalle = function(i) {
+                detalles.splice(i, 1);
+                renderTabla();
+            };
+
+            // Inicializar valores
+            $('#tasaMostrada').text('12.00%');
+        });
+        </script>
+
+    <script src="{{ asset('js/select2-focus.js') }}"></script>
+
+    <script>
+        
+        // Escuchar cambios en campos relevantes
+        $('select[name="tasa_id"], input[name="inicial"], input[name="numero_cuotas"]').on('input change', recalcularCuota);
+        $('#loteSelect').on('change', recalcularCuota);
+
+    </script>
+
+
+@endsection

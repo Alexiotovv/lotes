@@ -1,0 +1,8 @@
+---
+  deployment:
+    tasks:
+      - export DEPLOYPATH=/home/aywsolution/public_html/lotes.aywsolution.com/
+      - /bin/rsync -av public/ $DEPLOYPATH
+      - export DEPLOYPATH=/home/aywsolution/web_lotes/
+      - /bin/rsync -av ./ $DEPLOYPATH
+
