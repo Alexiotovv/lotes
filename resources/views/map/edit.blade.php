@@ -31,16 +31,17 @@
 
 <h3 style="text-align:center">🗺️ Editor de Imagen del Mapa</h3>
 
-@if(!$mapImage)
-<form action="{{ route('map.store') }}" method="POST" enctype="multipart/form-data">
+<form action="{{ route('map.store') }}" method="POST" enctype="multipart/form-data" style="text-align:center; margin-bottom:10px;">
   @csrf
   <input type="file" name="image" required>
-  <button type="submit">Subir Imagen</button>
+  <button type="submit">{{ $mapImage ? 'Reemplazar Imagen' : 'Subir Imagen' }}</button>
 </form>
-@else
-<div id="map"></div>
-<button id="guardar">💾 Guardar posición</button>
+
+@if($mapImage)
+  <div id="map"></div>
+  <button id="guardar">💾 Guardar posición</button>
 @endif
+
 
 <!-- ENLACE LOCAL para Leaflet JS (¡PRIMERO!) -->
 <script src="{{ asset('js/leaflet-plugins/leaflet.js') }}"></script>

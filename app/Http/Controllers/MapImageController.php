@@ -25,13 +25,28 @@ class MapImageController extends Controller
 
         $path = $request->file('image')->store('map_images', 'public');
 
-        $mapImage = MapImage::create([
-            'name' => $request->name ?? 'Plano',
-            'image_path' => $path,
-        ]);
+        // Buscar imagen existente
+        $mapImage = MapImage::first();
 
-        return redirect()->route('map.edit')->with('success', 'Imagen subida correctamente.');
+        if ($mapImage) {
+            // Eliminar imagen anterior
+            Storage::disk('public')->delete($mapImage->image_path);
+            // Actualizar con nueva imagen
+            $mapImage->update([
+                'image_path' => $path,
+                'position' => null, // opcional: resetear posición
+            ]);
+        } else {
+            // Crear nuevo registro si no existe
+            $mapImage = MapImage::create([
+                'name' => $request->name ?? 'Plano',
+                'image_path' => $path,
+            ]);
+        }
+
+        return redirect()->route('map.edit')->with('success', 'Imagen subida/reemplazada correctamente.');
     }
+
 
     public function updateMapPosition(Request $request, $id)
     {
