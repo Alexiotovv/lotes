@@ -221,8 +221,8 @@
         <div class="empresa-info">
             <h2>{{ optional($empresa)->nombre ?? 'CONSTRUCCIONES E INMOBILIARIA ALARCON SAC' }}</h2>
             <p>R.U.C. {{ optional($empresa)->ruc ?? '20603441568' }}</p>
-            <p>PSJ. SIMÓN BOLÍVAR N° 159 - MORALES</p>
-            <p>LOTIZACIÓN LOS CEDROS DE SAN JUAN</p>
+            <p>{{ optional($empresa)->direccion ?? 'Av. Los Claveles 785'}}</p>
+            <p>{{ optional($empresa)->descripcion ?? 'LOTIZACIÓN'}}</p>
         </div>
     </div>
 

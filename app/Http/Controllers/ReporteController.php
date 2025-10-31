@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Venta;
 use App\Models\Cliente;
+use App\Models\Empresa;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
@@ -12,7 +13,8 @@ class ReporteController extends Controller
     // Vista principal de reportes de ventas
     public function ventas()
     {
-        return view('reportes.ventas.index');
+        $empresa = Empresa::first();
+        return view('reportes.ventas.index',compact('empresa'));
     }
 
     // Reporte de créditos por cliente

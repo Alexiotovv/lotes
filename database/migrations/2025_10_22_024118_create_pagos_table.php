@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('pagos', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('cronograma_id')->constrained('cronogramas')->onDelete('cascade');
+            $table->foreignId('cronograma_id')->constrained('cronogramas')->onDelete('restrict');
             $table->date('fecha_pago');
             $table->decimal('monto_pagado', 12, 2);
             $table->string('metodo_pago', 50)->nullable();

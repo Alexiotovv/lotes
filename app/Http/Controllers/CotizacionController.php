@@ -38,7 +38,7 @@ class CotizacionController extends Controller
             });
         }
 
-        $cotizaciones = $query->latest()->paginate(2    );
+        $cotizaciones = $query->latest()->paginate(20);
 
         return view('cotizaciones.index', compact('cotizaciones', 'search'));
     }
@@ -194,10 +194,27 @@ class CotizacionController extends Controller
     //     return view('cotizaciones.print', compact('cotizacion', 'rows'));
     // }
 
-    public function destroy(Cotizacion $cotizacione)
+    // public function destroy(Cotizacion $cotizacione)
+    // {
+    //     $cotizacione->delete();
+    //     return redirect()->route('cotizaciones.index')->with('success', 'Cotización eliminada');
+    // }
+    public function destroy($id)
     {
-        $cotizacione->delete();
-        return redirect()->route('cotizaciones.index')->with('success', 'Cotización eliminada');
+        $venta = Cotizacion::findOrFail($id);
+
+        // Verifica si existen cronogramas asociados
+        // if ($venta->cronogramas()->exists()) {
+        //     return redirect()->route('cotizaciones.index')
+        //         ->with('error', 'No se puede eliminar la cotizacion porque tiene datos asociados.');
+        // }
+
+        // Si no hay relaciones, elimina
+        $venta->delete();
+
+        return redirect()->route('cotizaciones.index')
+            ->with('success', 'Cotización eliminada correctamente.');
     }
+
     
 }

@@ -47,6 +47,7 @@
         </a>
         <div class="collapse ps-3" id="menuFacturacion">
           <a href="{{ route('clientes.index') }}" class="nav-link">🗸 Listar Clientes</a>
+          <a href="{{ route('reservas.index') }}" class="nav-link">🗸 Listar Reservas</a>
           <a href="{{ route('ventas.index') }}" class="nav-link">🗸 Listar Ventas</a>
           <a href="{{ route('creditos.index') }}" class="nav-link">🗸 Listar Créditos</a>
           <a href="{{ route('pagos.index') }}" class="nav-link">🗸 Listar Cobros</a>
@@ -68,6 +69,8 @@
         <div class="collapse ps-3" id="menuMapas">
           <a class="nav-link" href="{{ route('mapa.index') }}">🗸 Mapa de Lotes</a>
           <a class="nav-link" href="{{ route('lote.create') }}">🗸 Reg. Ráp de Lotes</a>
+          <a class="nav-link" href="{{ route('mapa.ver.lotes') }}">🗸 Vista de Lotes</a>
+          
           <a class="nav-link" href="{{ route('map.edit') }}">🗸 Editar Imagen en Mapa</a>
 
         </div>
@@ -104,6 +107,27 @@
           <a href="#" class="nav-link">👥 R. Clientes</a>
           <a href="#" class="nav-link">🏭 R. Proveedores</a>
         </div>
+
+      @elseif(auth()->user()->role === 'vendedor')
+        <a class="nav-link d-flex justify-content-between align-items-center" data-bs-toggle="collapse" href="#menuMapas">
+          🗺 Mapas <span>▾</span>
+        </a>
+        <div class="collapse ps-3" id="menuMapas">
+          <a class="nav-link"  href="{{ route('mapa.ver.lotes') }}">🗺 Vista de Lotes</a> 
+        </div>
+        
+        <a class="nav-link d-flex justify-content-between align-items-center" data-bs-toggle="collapse" href="#menuFacturacion">
+          🧾 Facturación <span>▾</span>
+        </a>
+        <div class="collapse ps-3" id="menuFacturacion">
+          <a href="{{ route('reservas.index') }}" class="nav-link">🗸 Listar Reservas</a>
+          <a href="{{ route('clientes.index') }}" class="nav-link">🗸 Listar Clientes</a>
+          <a href="{{ route('pagos.index') }}" class="nav-link">🗸 Listar Cobros</a>
+          <a class="nav-link" href="{{ route('clientes.create') }}">➕ Registrar Cliente</a>
+          <a class="nav-link" href="{{ route('creditos.index') }}"> 👥 Créditos Cliente</a>
+          <a class="nav-link" href="{{ route('cotizaciones.index') }}">🧾 Mis Cotizaciones</a>
+          <a class="nav-link" href="{{ route('ventas.index') }}">💰 Mis Ventas</a>
+        </div>
       @endif
     </nav>
   </div>
@@ -112,6 +136,12 @@
     @if(session('success'))
       <div class="alert alert-success alert-dismissible fade show">
         {!! session('success') !!}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+      </div>
+    @endif
+    @if(session('error'))
+      <div class="alert alert-danger alert-dismissible fade show">
+        {!! session('error') !!}
         <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
       </div>
     @endif

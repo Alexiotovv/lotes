@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Models\Lote;
 use App\Models\EstadoLote;
+use App\Models\Empresa;
 class MapaController extends Controller
 {
     // app/Http/Controllers/MapaController.php
@@ -32,9 +33,6 @@ class MapaController extends Controller
 
         return view('mapa.create', compact('lotes', 'prefijos'));
     }
-
-
-
 
     public function guardarLotes(Request $request)
     {
@@ -72,6 +70,13 @@ class MapaController extends Controller
         $mapImage->save();
 
         return response()->json(['success' => true]);
+    }
+
+    public function verLotes()
+    {
+        $lotes = Lote::with('estadoLote')->get();
+        $empresa = Empresa::first();
+        return view('mapa.ver-lotes', compact('lotes','empresa'));
     }
 
 }

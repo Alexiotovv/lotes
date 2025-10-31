@@ -8,7 +8,7 @@
             <!-- Encabezado del reporte -->
             <div class="card mb-4">
                 <div class="card-header bg-light">
-                    <h5 class="mb-0">📋 Reporte de Ventas - LOTIZACIÓN LOS CEDROS DE SAN JUAN</h5>
+                    <h5 class="mb-0">📋 Reporte de Ventas - {{$empresa->nombre}}</h5>
                 </div>
                 <div class="card-body">
                     <form method="GET" action="{{ route('reportes.ventas') }}">
@@ -61,7 +61,7 @@
             <!-- Reporte de créditos por cliente -->
             <div class="card mb-4">
                 <div class="card-header bg-light">
-                    <h6 class="mb-0">💰 Reporte de Créditos por Cliente - LOTIZACIÓN LOS CEDROS DE SAN JUAN</h6>
+                    <h5 class="mb-0">💰 Reporte de Créditos por Cliente - {{$empresa->nombre}}</h5>
                 </div>
                 <div class="card-body">
                     <div class="row g-3">
@@ -80,7 +80,7 @@
             <!-- Otros Reportes -->
             <div class="card">
                 <div class="card-header bg-light">
-                    <h6 class="mb-0">📄 Otros Reportes - LOTIZACIÓN LOS CEDROS DE SAN JUAN</h6>
+                    <h5 class="mb-0">📄 Otros Reportes - {{$empresa->nombre}}</h5>
                 </div>
                 <div class="card-body">
                     <div class="d-flex justify-content-between gap-3">

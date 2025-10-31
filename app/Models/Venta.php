@@ -20,9 +20,25 @@ class Venta extends Model
         'monto_financiar',
         'tasa_interes',
         'cuota',
+        'cronograma_generado',
         'observaciones',
+        'cronograma_generado',
+        'estado',
     ];
+    
+    public function isFinalizada(): bool
+    {
+        if ($this->estado === 'contado') {
+            return true;
+        }
+        
+        return $this->cronogramas->every(fn($c) => $c->estado === 'pagado');
+    }
 
+
+    protected $casts = [
+        'fecha_pago' => 'date',
+    ];
     public function cliente()
     {
         return $this->belongsTo(Cliente::class);

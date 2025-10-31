@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('cronograma_pagos', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('venta_id')->constrained()->cascadeOnDelete();
+            $table->foreignId('venta_id')->constrained('ventas')->onDelete('restrict');
             $table->decimal('monto', 12, 2);
             $table->date('fecha_vencimiento');
             $table->boolean('pagado')->default(false);

@@ -64,7 +64,7 @@
         <!-- N° Cuotas e Inicial -->
         <div class="col-md-3">
             <label>N° Cuotas</label>
-            <input type="number" name="numero_cuotas" class="form-control" min="1">
+            <input type="number" name="numero_cuotas" class="form-control" min="0" value="0"> <!-- min="0" -->
         </div>
         <div class="col-md-3">
             <label>Inicial (S/)</label>
@@ -214,7 +214,7 @@
                 if (!clienteId) { toastr.warning('Seleccione un cliente.'); return; }
 
                 const metodoPagoId = $('select[name="metodopago_id"]').val();
-                if (!metodoPagoId) { toastr.warning('Seleccione método de pago.'); return; }
+                if (!metodoPagoId) { toastr.warning('Seleccione Tipo de Venta.'); return; }
 
                 const fechaPago = $('input[name="fecha_pago"]').val();
                 const nCuotas = $('input[name="numero_cuotas"]').val();
@@ -226,14 +226,16 @@
                 const precio = precioStr ? parseFloat(precioStr.replace(/,/g, '')) : 0;
                 const montoFinanciar = Math.max(0, precio - inicial);
 
-                if (nCuotas === '' || parseInt(nCuotas) < 1) {
-                    toastr.warning('N° de cuotas debe ser ≥ 1.');
+                // Permitir 0 cuotas (venta al contado)
+                const numCuotas = parseInt(nCuotas);
+                if (nCuotas === '' || (numCuotas < 0)) {
+                    toastr.warning('N° de cuotas no válido.');
                     return;
                 }
 
                 // Calcular cuota
                 let cuota = 0;
-                if (montoFinanciar > 0 && nCuotas > 0) {
+                if (numCuotas > 0 && montoFinanciar > 0) {
                     if (tea > 0) {
                         const tem = Math.pow(1 + tea, 1/12) - 1;
                         cuota = (montoFinanciar * tem * Math.pow(1 + tem, nCuotas)) / (Math.pow(1 + tem, nCuotas) - 1);
@@ -241,6 +243,7 @@
                         cuota = montoFinanciar / nCuotas;
                     }
                 }
+                // Si numCuotas === 0, cuota permanece 0 (venta al contado)
 
                 detalles.push({
                     lote_id: loteId,

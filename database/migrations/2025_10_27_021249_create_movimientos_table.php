@@ -9,10 +9,10 @@ return new class extends Migration
     {
         Schema::create('movimientos', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('caja_id')->constrained()->onDelete('cascade');
-            $table->foreignId('concepto_id')->constrained()->onDelete('cascade');
-            $table->foreignId('venta_id')->nullable()->constrained('ventas')->onDelete('set null');
-            $table->foreignId('user_id')->constrained('users')->onDelete('cascade');
+            $table->foreignId('caja_id')->constrained()->onDelete('restrict');
+            $table->foreignId('concepto_id')->constrained()->onDelete('restrict');
+            $table->foreignId('venta_id')->constrained('ventas')->restrictOnDelete();
+            $table->foreignId('user_id')->constrained('users')->onDelete('restrict');
             $table->string('referencia')->nullable(); // N° operación, recibo, etc.
             $table->decimal('monto', 12, 2);
             $table->enum('tipo', ['ingreso', 'egreso']); // Derivado del concepto, pero útil para consultas

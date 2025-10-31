@@ -50,10 +50,11 @@
             <td>S/ {{ number_format($c->lote?->area_m2 * $c->lote?->precio_m2, 2, '.', ',') }}</td>
             <td>
                 <a href="{{ route('cotizaciones.cronograma', $c) }}" target="_blank" class="btn btn-outline-info btn-sm ms-1">🖨️ Cronograma</a>
-                <form action="{{ route('cotizaciones.destroy', $c) }}" method="POST" onsubmit="return confirm('¿Eliminar cotización?')" class="d-inline">
+                <form action="{{ route('cotizaciones.destroy', $c->id) }}" method="POST" onsubmit="return confirm('¿Eliminar cotización?')" class="d-inline">
                     @csrf @method('DELETE')
                     <button class="btn btn-light btn-sm">❌</button>
                 </form>
+
             </td>
         </tr>
         @endforeach

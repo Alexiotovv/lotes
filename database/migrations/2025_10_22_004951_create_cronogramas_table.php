@@ -10,7 +10,7 @@ return new class extends Migration
     {
         Schema::create('cronogramas', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('venta_id')->constrained('ventas')->onDelete('cascade');
+            $table->foreignId('venta_id')->constrained('ventas')->onDelete('restrict');
             $table->integer('nro_cuota');                  // Número de cuota
             $table->date('fecha_pago');                    // Fecha programada de pago
             $table->decimal('saldo', 12, 2);               // Saldo antes del pago

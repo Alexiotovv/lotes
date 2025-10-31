@@ -61,28 +61,7 @@ class PagoController extends Controller
 
         return response()->json($cuotas);
     }
-    // public function cobrar(Venta $venta)
-    // {
-    //     $cuotas = $venta->cronogramas()
-    //         ->where('estado', '!=', 'pagado')
-    //         ->orderBy('nro_cuota')
-    //         ->get()
-    //         ->map(function ($c) {
-    //             $pagado = $c->pagos->sum('monto_pagado');
-    //             $pendiente = max(0, $c->cuota - $pagado);
-    //             return [
-    //                 'id' => $c->id,
-    //                 'nro_cuota' => $c->nro_cuota,
-    //                 'fecha_pago' => $c->fecha_pago,
-    //                 'cuota_total' => $c->cuota,
-    //                 'pagado' => $pagado,
-    //                 'pendiente' => $pendiente,
-    //                 'estado' => $c->estado,
-    //             ];
-    //         });
-
-    //     return response()->json($cuotas);
-    // }
+ 
 
 
     public function store(Request $request)
@@ -130,7 +109,12 @@ class PagoController extends Controller
             $cronograma->estado = 'pagado';
             $cronograma->save();
         }
+        $venta = $cronograma->venta; // ← Obtener la venta desde el cronograma
 
+        if ($venta && method_exists($venta, 'isFinalizada') && $venta->isFinalizada()) {
+            $venta->estado = 'finalizado';
+            $venta->save();
+        }
         return back()->with('success', 'Pago registrado correctamente.');
     }
 }
