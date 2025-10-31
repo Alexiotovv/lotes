@@ -198,7 +198,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 </div>
                 
                 <div class="footer-buttons" style="flex-direction: column; gap: 0.75rem;">
-                    <a class="btn-footer" href="" style="text-decoration: none; color: #17a2b8; font-weight: bold; text-align: center;">
+                    <a class="btn-footer" href="{{ route('reservas.create') }}" style="text-decoration: none; color: #17a2b8; font-weight: bold; text-align: center;">
                         📌 RESERVAR
                     </a>
                     <a class="btn-footer" href="{{ route('ventas.create') }}" style="text-decoration: none; color: #28a745; font-weight: bold; text-align: center;">
