@@ -24,9 +24,12 @@ class MetodopagoController extends Controller
             'nombre' => 'required|string|max:100|unique:metodopagos,nombre',
             'descripcion' => 'nullable|string|max:255',
             'activo' => 'nullable|boolean',
+            'es_credito' => 'required|boolean', // ← nuevo
         ]);
 
         $validated['activo'] = $request->has('activo');
+        $validated['es_credito'] = (bool) $request->es_credito; // ← asegura booleano
+
         Metodopago::create($validated);
 
         return redirect()->route('metodopagos.index')->with('success', 'Método de pago creado correctamente.');
@@ -43,9 +46,12 @@ class MetodopagoController extends Controller
             'nombre' => 'required|string|max:100|unique:metodopagos,nombre,' . $metodopago->id,
             'descripcion' => 'nullable|string|max:255',
             'activo' => 'nullable|boolean',
+            'es_credito' => 'required|boolean', // ← nuevo
         ]);
 
         $validated['activo'] = $request->has('activo');
+        $validated['es_credito'] = (bool) $request->es_credito; // ← asegura booleano
+
         $metodopago->update($validated);
 
         return redirect()->route('metodopagos.index')->with('success', 'Método de pago actualizado correctamente.');
