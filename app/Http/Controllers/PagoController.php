@@ -72,7 +72,7 @@ class PagoController extends Controller
             'monto_pagado' => 'required|numeric|min:0.01',
             'metodo_pago' => 'nullable|string|max:50',
             'referencia' => 'nullable|string|max:100',
-            'voucher' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048', // hasta 2MB
+            // 'voucher' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048', // hasta 2MB
             'observacion' => 'nullable|string',
         ]);
 
@@ -85,10 +85,32 @@ class PagoController extends Controller
             return back()->withErrors(['monto_pagado' => 'El monto no puede exceder el saldo pendiente de S/ ' . number_format($saldoPendiente, 2)]);
         }
 
-        // Subir voucher si existe
+        // Subir y comprimir voucher si existe (versión simple)
         $voucherPath = null;
         if ($request->hasFile('voucher')) {
-            $voucherPath = $request->file('voucher')->store('vouchers', 'public');
+            $image = $request->file('voucher');
+
+            // Crear nombre único
+            $filename = 'voucher_' . time() . '.jpg'; // Forzamos a JPG para mejor compresión
+            $folderPath = 'vouchers';
+            $fullPath = storage_path('app/public/' . $folderPath);
+
+            // Crear directorio si no existe
+            if (!file_exists($fullPath)) {
+                mkdir($fullPath, 0755, true);
+            }
+
+            // Procesar imagen con Intervention
+            $manager = new ImageManager(new \Intervention\Image\Drivers\Gd\Driver());
+            $img = $manager->read($image);
+
+            // Redimensionar a un ancho máximo de 1200px (mantiene proporción)
+            $img->scale(width: 1200);
+
+            // Guardar como JPG con calidad 85%
+            $img->toJpeg(85)->save($fullPath . '/' . $filename);
+
+            $voucherPath = $folderPath . '/' . $filename;
         }
 
         Pago::create(array_merge($validated, ['voucher' => $voucherPath]));
