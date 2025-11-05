@@ -14,7 +14,7 @@
         #listaCuotas::-webkit-scrollbar-thumb:hover {
             background: #a8a8a8;
         }
-        /* Estilo para vista previa */
+          /* Estilo para vista previa */
         #vistaPrevia {
             box-shadow: 0 2px 4px rgba(0,0,0,0.1);
             transition: all 0.2s;
@@ -368,26 +368,83 @@ document.getElementById('formCobro')?.addEventListener('submit', function(e) {
 
 
   // === Manejo de cámara y vista previa ===
-  document.getElementById('btnCamara').addEventListener('click', function() {
-      document.getElementById('voucherInput').click();
+    document.getElementById('btnCamara').addEventListener('click', function() {
+        document.getElementById('voucherInput').click();
+    });
+
+    document.getElementById('voucherInput').addEventListener('change', async function(e) {
+      const file = e.target.files[0];
+      if (!file) return;
+
+      // Mostrar vista previa temporal
+      const reader = new FileReader();
+      reader.onload = function(event) {
+          document.getElementById('imgPrevia').src = event.target.result;
+          document.getElementById('vistaPrevia').style.display = 'block';
+      };
+      reader.readAsDataURL(file);
+
+      // === COMPRESIÓN DE IMAGEN ===
+      const compressedFile = await compressImage(file, 0.6); // calidad entre 0.5–0.7 suele ir bien
+      replaceFileInput(compressedFile);
   });
 
-  document.getElementById('voucherInput').addEventListener('change', function(e) {
-      const file = e.target.files[0];
-      if (file) {
+
+  // Función para comprimir imagen con <canvas>
+  function compressImage(file, quality = 0.6) {
+      return new Promise((resolve) => {
+          const img = new Image();
           const reader = new FileReader();
-          reader.onload = function(event) {
-              document.getElementById('imgPrevia').src = event.target.result;
-              document.getElementById('vistaPrevia').style.display = 'block';
+          reader.onload = (e) => {
+              img.src = e.target.result;
+          };
+          img.onload = () => {
+              const canvas = document.createElement('canvas');
+              const MAX_WIDTH = 1024; // puedes bajarlo a 800 si quieres más compresión
+              const scale = Math.min(MAX_WIDTH / img.width, 1);
+              canvas.width = img.width * scale;
+              canvas.height = img.height * scale;
+              const ctx = canvas.getContext('2d');
+              ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+
+              // Exportar como JPEG comprimido
+              canvas.toBlob(
+                  (blob) => {
+                      // Crear nuevo archivo tipo File para que Laravel lo lea normalmente
+                      const compressed = new File([blob], file.name.replace(/\.[^.]+$/, '.jpg'), {
+                          type: 'image/jpeg',
+                          lastModified: Date.now(),
+                      });
+                      resolve(compressed);
+                  },
+                  'image/jpeg',
+                  quality
+              );
           };
           reader.readAsDataURL(file);
-      }
-  });
+      });
+  }
+
+  // Reemplaza el archivo seleccionado por el comprimido
+  function replaceFileInput(newFile) {
+      const dataTransfer = new DataTransfer();
+      dataTransfer.items.add(newFile);
+      document.getElementById('voucherInput').files = dataTransfer.files;
+  }
+
+
+
+
+
+
 
   document.getElementById('btnEliminarFoto').addEventListener('click', function() {
       document.getElementById('voucherInput').value = '';
       document.getElementById('vistaPrevia').style.display = 'none';
   });
+
+
+
 
 </script>
 @endsection

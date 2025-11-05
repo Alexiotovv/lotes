@@ -7,9 +7,6 @@ use App\Models\Cronograma;
 use App\Models\Pago;
 use App\Models\Caja;
 use Illuminate\Http\Request;
-use Intervention\Image\ImageManager;
-use Intervention\Image\Drivers\Gd\Driver;
-
 class PagoController extends Controller
 {
     public function index()
@@ -75,7 +72,7 @@ class PagoController extends Controller
             'monto_pagado' => 'required|numeric|min:0.01',
             'metodo_pago' => 'nullable|string|max:50',
             'referencia' => 'nullable|string|max:100',
-            'voucher' => 'nullable|image|mimes:jpeg,png,jpg,gif',
+            'voucher' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048', // hasta 2MB
             'observacion' => 'nullable|string',
         ]);
 
@@ -88,26 +85,10 @@ class PagoController extends Controller
             return back()->withErrors(['monto_pagado' => 'El monto no puede exceder el saldo pendiente de S/ ' . number_format($saldoPendiente, 2)]);
         }
 
-        // Subir y comprimir voucher si existe (versión optimizada)
+        // Subir voucher si existe
         $voucherPath = null;
         if ($request->hasFile('voucher')) {
-            $image = $request->file('voucher');
-            $filename = 'voucher_' . time() . '.jpg';
-            $folderPath = 'vouchers';
-            $fullPath = storage_path('app/public/' . $folderPath);
-
-            if (!file_exists($fullPath)) {
-                mkdir($fullPath, 0755, true);
-            }
-
-            $manager = new ImageManager(new Driver());
-            $img = $manager->read($image);
-            
-            // ✅ Dimensiones y calidad optimizadas
-            $img->scale(width: 800); // Ancho máximo de 800px (mantiene proporción)
-            $img->toJpeg(75)->save($fullPath . '/' . $filename); // Calidad 75%
-
-            $voucherPath = $folderPath . '/' . $filename;
+            $voucherPath = $request->file('voucher')->store('vouchers', 'public');
         }
 
         Pago::create(array_merge($validated, ['voucher' => $voucherPath]));
