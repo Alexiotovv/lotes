@@ -5,12 +5,13 @@ namespace App\Http\Controllers\Auth;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-
+use App\Models\Empresa;
 class LoginController extends Controller
 {
     public function showLoginForm()
     {
-        return view('auth.login');
+        $logo = Empresa::first()->logo ?? 'logo-default.png'; // valor por defecto por seguridad
+        return view('auth.login', compact('logo'));
     }
 
     public function login(Request $request)

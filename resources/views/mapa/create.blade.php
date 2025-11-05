@@ -1,6 +1,7 @@
 @extends('layouts.app')
 
 @section('css')
+<link href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css" rel="stylesheet">
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 <style>
     #map { height: 600px; }
@@ -65,6 +66,7 @@
 @endsection
 
 @section('scripts')
+<script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script src="https://unpkg.com/leaflet-draw@1.0.4/dist/leaflet.draw.js"></script>
 
@@ -180,12 +182,19 @@
 
     // Agregar lote al hacer clic
     map.on('click', function(e) {
+        // ✅ Validar que haya un prefijo seleccionado
+        const selectPrefijo = document.getElementById('prefijoSelect');
+        if (!selectPrefijo.value) {
+            alert('⚠️ Primero debe seleccionar un prefijo de lote.');
+            return;
+        }
+
         if (lotes.length >= 100) {
             alert('⚠️ Límite de 100 lotes alcanzado.');
             return;
         }
 
-        const codigo = generarCodigo(prefijoActual);
+        const codigo = generarCodigo(selectPrefijo.value); // ← usar el valor actual
         const lat = e.latlng.lat.toFixed(6);
         const lng = e.latlng.lng.toFixed(6);
         const lote = { codigo, latitud: lat, longitud: lng };
@@ -222,6 +231,12 @@
 
     // Guardar lotes
     document.getElementById('guardarLotes').addEventListener('click', function() {
+        const selectPrefijo = document.getElementById('prefijoSelect');
+        if (!selectPrefijo.value) {
+            alert('⚠️ Seleccione un prefijo antes de guardar.');
+            return;
+        }
+
         if (lotes.length === 0) {
             alert('No hay lotes nuevos por guardar.');
             return;
@@ -239,17 +254,17 @@
         .then(data => {
             if (data.success) {
                 alert(data.message);
-                localStorage.removeItem('lotesMapa');
-                lotes = [];
-                markers.forEach(m => map.removeLayer(m));
-                markers = [];
+                // ✅ Recargar la página completa
+                window.location.reload();
             } else {
-                alert(data.message || 'Error al guardar.');
+                toastr.success(data.message || 'Error al guardar.');
+                // alert(data.message || 'Error al guardar.');
             }
         })
         .catch(err => {
             console.error(err);
-            alert('Error al conectar con el servidor.');
+            toastr.error(err || 'Error al guardar.');
+            // alert('Error al conectar con el servidor.');
         });
     });
 

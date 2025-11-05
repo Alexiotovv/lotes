@@ -1,7 +1,7 @@
 @extends('layouts.app')
 
 @section('css')
-<link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css">
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css">
 @endsection
 
 @section('content')
@@ -15,6 +15,7 @@
         <tr>
             <th>Nombre</th>
             <th>Descripción</th>
+            <th>Tipo de Venta</th>
             <th>Activo</th>
             <th width="140">Acciones</th>
         </tr>
@@ -24,6 +25,13 @@
         <tr>
             <td>{{ $metodo->nombre }}</td>
             <td>{{ $metodo->descripcion }}</td>
+            <td>
+                @if($metodo->es_credito)
+                    <span class="badge bg-success">Crédito</span>
+                @else
+                    <span class="badge bg-secondary">Contado</span>
+                @endif
+            </td>
             <td>{{ $metodo->activo ? '✅ Sí' : '❌ No' }}</td>
             <td>
                 <a href="{{ route('metodopagos.edit', $metodo) }}" class="btn btn-sm btn-light btn-sm">✏️ Editar</a>

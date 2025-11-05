@@ -28,13 +28,17 @@
             <td>{{ $r->fecha_reserva }}</td>
             <td>{{ $r->caja->nombre }}</td>
             <td>
-                <button type="button" class="btn btn-warning btn-sm edit-btn" data-id="{{ $r->id }}">
-                    ✏️ Editar
-                </button>
-                <form action="{{ route('reservas.destroy', $r) }}" method="POST" class="d-inline" onsubmit="return confirm('¿Eliminar reserva?')">
-                    @csrf @method('DELETE')
-                    <button type="submit" class="btn btn-danger btn-sm">🗑️</button>
-                </form>
+
+                @if(auth()->user()->is_admin())
+                    <button type="button" class="btn btn-warning btn-sm edit-btn" data-id="{{ $r->id }}">
+                        ✏️ Editar
+                    </button>
+                    <button type="button" class="btn btn-danger btn-sm delete-btn" data-id="{{ $r->id }}">
+                        🗑️
+                    </button>
+                @else
+                    --
+                @endif
             </td>
         </tr>
         @endforeach
@@ -85,54 +89,74 @@
         </div>
     </div>
 </div>
+
+
+<form id="deleteForm" method="POST" style="display: none;">
+    @csrf
+    @method('DELETE')
+</form>
+
+
 @endsection
 
 @section('scripts')
 <script>
-$(document).ready(function() {
-    $('.edit-btn').on('click', function() {
+    $(document).ready(function() {
+        $('.edit-btn').on('click', function() {
+            const id = $(this).data('id');
+            $.get(`/reservas/${id}/edit`, function(data) {
+                const r = data.reserva;
+                $('#reserva_id').val(r.id);
+                $('#edit_cliente_id').empty();
+                $('#edit_caja_id').empty();
+
+                data.clientes.forEach(c => {
+                    $('#edit_cliente_id').append(`<option value="${c.id}" ${c.id == r.cliente_id ? 'selected' : ''}>${c.nombre_cliente}</option>`);
+                });
+                data.cajas.forEach(c => {
+                    $('#edit_caja_id').append(`<option value="${c.id}" ${c.id == r.caja_id ? 'selected' : ''}>${c.nombre}</option>`);
+                });
+
+                $('#edit_monto').val(r.monto);
+                $('#edit_fecha_reserva').val(r.fecha_reserva);
+                $('#edit_observaciones').val(r.observaciones || '');
+
+                $('#editForm').attr('action', `/reservas/${r.id}`);
+                $('#editModal').modal('show');
+            });
+        });
+
+        $('#editForm').on('submit', function(e) {
+            e.preventDefault();
+            const url = $(this).attr('action');
+            const datos = {
+                _token: $('meta[name="csrf-token"]').attr('content'),
+                _method: 'PUT',
+                cliente_id: $('#edit_cliente_id').val(),
+                caja_id: $('#edit_caja_id').val(),
+                monto: $('#edit_monto').val(),
+                fecha_reserva: $('#edit_fecha_reserva').val(),
+                observaciones: $('#edit_observaciones').val(),
+            };
+
+            $.post(url, datos, function() {
+                location.reload();
+            }).fail(function() {
+                alert('Error al actualizar.');
+            });
+        });
+    });
+
+    // ✅ Manejar eliminación
+    $(document).on('click', '.delete-btn', function() {
         const id = $(this).data('id');
-        $.get(`/reservas/${id}/edit`, function(data) {
-            const r = data.reserva;
-            $('#reserva_id').val(r.id);
-            $('#edit_cliente_id').empty();
-            $('#edit_caja_id').empty();
+        const url = `/reservas/${id}`;
 
-            data.clientes.forEach(c => {
-                $('#edit_cliente_id').append(`<option value="${c.id}" ${c.id == r.cliente_id ? 'selected' : ''}>${c.nombre_cliente}</option>`);
-            });
-            data.cajas.forEach(c => {
-                $('#edit_caja_id').append(`<option value="${c.id}" ${c.id == r.caja_id ? 'selected' : ''}>${c.nombre}</option>`);
-            });
-
-            $('#edit_monto').val(r.monto);
-            $('#edit_fecha_reserva').val(r.fecha_reserva);
-            $('#edit_observaciones').val(r.observaciones || '');
-
-            $('#editForm').attr('action', `/reservas/${r.id}`);
-            $('#editModal').modal('show');
-        });
+        if (confirm('¿Eliminar reserva? Esta acción no se puede deshacer.')) {
+            const form = $('#deleteForm');
+            form.attr('action', url);
+            form.submit();
+        }
     });
-
-    $('#editForm').on('submit', function(e) {
-        e.preventDefault();
-        const url = $(this).attr('action');
-        const datos = {
-            _token: $('meta[name="csrf-token"]').attr('content'),
-            _method: 'PUT',
-            cliente_id: $('#edit_cliente_id').val(),
-            caja_id: $('#edit_caja_id').val(),
-            monto: $('#edit_monto').val(),
-            fecha_reserva: $('#edit_fecha_reserva').val(),
-            observaciones: $('#edit_observaciones').val(),
-        };
-
-        $.post(url, datos, function() {
-            location.reload();
-        }).fail(function() {
-            alert('Error al actualizar.');
-        });
-    });
-});
 </script>
 @endsection

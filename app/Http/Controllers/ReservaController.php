@@ -18,7 +18,6 @@ class ReservaController extends Controller
         $reservas = Reserva::with(['cliente', 'lote', 'caja', 'user'])
             ->latest()
             ->paginate(15);
-
         return view('reservas.index', compact('reservas'));
     }
 
@@ -34,7 +33,11 @@ class ReservaController extends Controller
         $conceptoReservaId = Concepto::where('nombre', 'like', '%reserva%')->value('id')
             ?? Concepto::where('tipo', 'ingreso')->first()?->id;
 
-        return view('reservas.create', compact('lote', 'clientes', 'cajas', 'conceptoReservaId'));
+        $config = \App\Models\ConfiguracionGeneral::first();
+        $monto_reserva = $config->monto_reserva_default; // ej: 200.00
+        // $registrarCompra = $config->registrar_lote_compra; // true/false
+
+        return view('reservas.create', compact('lote', 'clientes', 'cajas', 'conceptoReservaId','monto_reserva'));
     }
 
     public function store(Request $request)
@@ -136,7 +139,11 @@ class ReservaController extends Controller
     }
 
     public function destroy(Reserva $reserva)
-    {
+        
+        {if (auth()->user()->rol !== 'admin') {
+            abort(403, 'Acceso denegado.');
+        }
+
         DB::transaction(function () use ($reserva) {
             // Eliminar movimiento
             Movimiento::where('referencia', 'like', '%Reserva Lote ' . $reserva->lote->codigo . '%')->delete();

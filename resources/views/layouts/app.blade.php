@@ -59,8 +59,8 @@
         </a>
         <div class="collapse ps-3" id="menuLogistica">
           <a href="{{ route('lotes.indexView') }}" class="nav-link">🗸 Listar Lotes</a>
-          <a href="#" class="nav-link">🗸 Listar Compras(pending)</a>
-          <a href="#" class="nav-link">🗸 Listar Proveedore(pending)s</a>
+          <a href="{{ route('compras.index') }}" class="nav-link">🗸 Compras</a>
+          <a href="#" class="nav-link">🗸 Proveedores</a>
         
         </div>
         <a class="nav-link d-flex justify-content-between align-items-center" data-bs-toggle="collapse" href="#menuMapas">
@@ -84,6 +84,7 @@
           <a href="{{ route('tesoreria.cajas.index') }}" class="nav-link">🗸 Cajas</a>
           <a href="{{ route('tesoreria.conceptos.index') }}" class="nav-link">🗸 Conceptos</a>
           <a href="{{ route('empresa.edit') }}" class="nav-link">🗸 Empresa</a>
+          <a href="{{ route('configuracion.edit') }}" class="nav-link">🗸 Configuracion General</a>
         </div>
 
         <a class="nav-link d-flex justify-content-between align-items-center" data-bs-toggle="collapse" href="#menuTesoreria">

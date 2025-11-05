@@ -14,6 +14,21 @@
         #listaCuotas::-webkit-scrollbar-thumb:hover {
             background: #a8a8a8;
         }
+        /* Estilo para vista previa */
+        #vistaPrevia {
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            transition: all 0.2s;
+        }
+        #vistaPrevia:hover {
+            box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+        }
+        #btnEliminarFoto {
+            opacity: 0.7;
+            transition: opacity 0.2s;
+        }
+        #vistaPrevia:hover #btnEliminarFoto {
+            opacity: 1;
+        }
     </style>
 @endsection
 @section('content')
@@ -183,10 +198,26 @@
                         <input type="text" name="referencia" class="form-control">
                       </div>
                       <div class="col-12">
-                        <label class="form-label">Comprobante de pago (voucher):</label>
-                            <input type="file" name="voucher" class="form-control" accept="image/*">
-                            <small class="text-muted">Formatos: JPG, PNG, GIF (máx. 2MB)</small>
-                        </div>
+                          <label class="form-label">Comprobante de pago (voucher):</label>
+                          <div class="d-flex flex-column align-items-start">
+                              <!-- Botón para cámara -->
+                              <button type="button" class="btn btn-outline-secondary btn-sm mb-2" id="btnCamara">
+                                  📷 Tomar Foto
+                              </button>
+                              
+                              <!-- Input file oculto -->
+                              <input type="file" name="voucher" id="voucherInput" class="form-control d-none" accept="image/*" capture="environment">
+                              
+                              <!-- Vista previa -->
+                              <div id="vistaPrevia" class="mt-2" style="display:none; width: 180px; height: 180px; border: 1px dashed #ccc; border-radius: 8px; overflow: hidden; position: relative;">
+                                  <img id="imgPrevia" src="" alt="Vista previa" style="width: 100%; height: 100%; object-fit: cover;">
+                                  <button type="button" class="btn btn-danger btn-sm" id="btnEliminarFoto" style="position: absolute; top: 4px; right: 4px; padding: 2px 6px;">
+                                      ✕
+                                  </button>
+                              </div>
+                          </div>
+                          <small class="text-muted">Formatos: JPG, PNG, GIF (máx. 2MB)</small>
+                      </div>
                       <div class="col-12">
                         <label class="form-label">Observación:</label>
                         <textarea name="observacion" class="form-control" rows="2" placeholder="Notas adicionales..."></textarea>
@@ -334,5 +365,29 @@ document.getElementById('formCobro')?.addEventListener('submit', function(e) {
         document.getElementById('errorCuota').style.display = 'block';
     }
 });
+
+
+  // === Manejo de cámara y vista previa ===
+  document.getElementById('btnCamara').addEventListener('click', function() {
+      document.getElementById('voucherInput').click();
+  });
+
+  document.getElementById('voucherInput').addEventListener('change', function(e) {
+      const file = e.target.files[0];
+      if (file) {
+          const reader = new FileReader();
+          reader.onload = function(event) {
+              document.getElementById('imgPrevia').src = event.target.result;
+              document.getElementById('vistaPrevia').style.display = 'block';
+          };
+          reader.readAsDataURL(file);
+      }
+  });
+
+  document.getElementById('btnEliminarFoto').addEventListener('click', function() {
+      document.getElementById('voucherInput').value = '';
+      document.getElementById('vistaPrevia').style.display = 'none';
+  });
+
 </script>
 @endsection

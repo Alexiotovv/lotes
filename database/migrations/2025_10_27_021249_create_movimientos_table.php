@@ -11,7 +11,7 @@ return new class extends Migration
             $table->id();
             $table->foreignId('caja_id')->constrained()->onDelete('restrict');
             $table->foreignId('concepto_id')->constrained()->onDelete('restrict');
-            $table->foreignId('venta_id')->constrained('ventas')->restrictOnDelete();
+            $table->foreignId('venta_id')->nullable()->constrained('ventas')->restrictOnDelete(); 
             $table->foreignId('user_id')->constrained('users')->onDelete('restrict');
             $table->string('referencia')->nullable(); // N° operación, recibo, etc.
             $table->decimal('monto', 12, 2);

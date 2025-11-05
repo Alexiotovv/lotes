@@ -2,6 +2,7 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login - Gestión de Lotes</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
 </head>
@@ -10,7 +11,11 @@
     <div class="row justify-content-center">
         <div class="col-md-5">
             <div class="card">
-                <div class="card-header text-center">
+                <div class="card-header text-center py-3">
+                    <img src="{{ asset('storage/'.$logo) }}" 
+                    alt="Logo" 
+                    class="img-fluid mt-2" 
+                    style="max-height: 60px;">
                     <h4>Iniciar Sesión</h4>
                 </div>
                 <div class="card-body">

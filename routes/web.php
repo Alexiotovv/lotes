@@ -8,6 +8,8 @@ use App\Http\Controllers\ClienteController;
 use App\Http\Controllers\CotizacionController;
 use App\Http\Controllers\VentaController;
 use App\Http\Controllers\ReservaController;
+use App\Http\Controllers\ConfiguracionGeneralController;
+use App\Http\Controllers\CompraController;
 
 // === Autenticación ===
 Route::get('/login', [LoginController::class, 'showLoginForm'])->name('login');
@@ -70,6 +72,16 @@ Route::middleware(['auth', 'admin'])->group(function () {
     // Aquí va TODO lo demás: lotes, pagos, tesorería, reportes, etc.
     // Copie aquí todas las rutas que actualmente están bajo el grupo 'auth'
     // EXCEPTO las 4 que ya asignamos al vendedor.
+
+    Route::prefix('compras')->name('compras.')->group(function () {
+        Route::get('/', [CompraController::class, 'index'])->name('index');
+        Route::get('/create', [CompraController::class, 'create'])->name('create');
+        Route::post('/', [CompraController::class, 'store'])->name('store');
+    });
+
+    Route::get('/configuracion', [ConfiguracionGeneralController::class, 'edit'])->name('configuracion.edit');
+    Route::put('/configuracion', [ConfiguracionGeneralController::class, 'update'])->name('configuracion.update');
+
 
     // Página del mapa
     Route::get('/mapa', [MapaController::class, 'index'])->name('mapa.index');

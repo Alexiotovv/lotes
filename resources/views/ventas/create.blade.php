@@ -11,144 +11,139 @@
 @endsection
 
 @section('content')
-<h3>Registrar Venta</h3>
+    <h3>Registrar Venta</h3>
+    {{-- @include('cotizaciones.form') --}}
+    <form action="{{ route('ventas.store') }}" method="POST">
+        @csrf
+        <div class="row g-2">
+        <!-- Cliente -->
+            <div class="col-md-4">
+                <label>Cliente *</label>
+                <select name="cliente_id" class="form-select select2" required>
+                    <option value="">Seleccione</option>
+                    @foreach($clientes as $c)
+                    <option value="{{ $c->id }}">{{ $c->nombre_cliente }}</option>
+                    @endforeach
+                </select>
+            </div>
+            
+            <!-- Método de Pago (como relación) -->
+            <div class="col-md-4">
+                <label>Tipo de Venta *</label>
+                <select name="metodopago_id" class="form-select" required>
+                    <option value="">Seleccione</option>
+                    @foreach($metodos as $m)
+                    <option value="{{ $m->id }}">{{ $m->nombre }}</option>
+                    @endforeach
+                </select>
+            </div>
 
+            <!-- Fecha Pago -->
+            <div class="col-md-4">
+                <label>Fecha Pago *</label>
+                <input type="date" name="fecha_pago" class="form-control" value="{{ date('Y-m-d') }}" required>
+            </div>
+            
+            
+            <div class="col-md-3">
+                <label>Buscar Lote</label>
+                <select id="loteSelect" class="form-select select2">
+                    <option value="">Seleccione un lote</option>
+                    @foreach($lotes as $lote)
+                    <option value="{{ $lote->id }}" 
+                        data-aream2="{{ $lote->area_m2 }}"
+                        data-preciom2="{{ $lote->precio_m2 }}"
+                        data-precio="{{ $lote->precio_m2 * $lote->area_m2 }}"
+                        data-desc="{{ $lote->codigo }} - {{ $lote->nombre }}">
+                        {{ $lote->codigo }} - {{ $lote->nombre }}
+                    </option>
+                    @endforeach
+                </select>
+            </div>
+            
+            <!-- N° Cuotas e Inicial -->
+            <div class="col-md-3">
+                <label>N° Cuotas</label>
+                <input type="number" name="numero_cuotas" class="form-control" min="0" value="0"> <!-- min="0" -->
+            </div>
+            <div class="col-md-3">
+                <label>Inicial (S/)</label>
+                <input type="number" step="0.01" name="inicial" class="form-control" value="0" required>
+            </div>
+            
+            <!-- Selector de tasa + campo oculto para enviar valor -->
+            <div class="col-md-3">
+                <label>Tasa de Interés (TEA)</label>
+                <select id="tasaSelect" class="form-select">
+                    <option value="0.00">0% (Sin interés)</option>
+                    <option value="0.12">12.00%</option>
+                    <option value="0.15">15.00%</option>
+                    <option value="0.18">18.00%</option>
+                </select>
+                <!-- Campo oculto para enviar al backend -->
+                <input type="hidden" name="tasa_interes" id="tasaInteresInput" value="0.00">
+            </div>
+            
+            <!-- Campos derivados del lote -->
+            <div class="col-md-3">
+                <label>Área m²</label>
+                <input type="text" id="area_m2" class="form-control" readonly>
+            </div>
+            <div class="col-md-3">
+                <label>Precio m²</label>
+                <input type="text" id="precio_m2" class="form-control" readonly>
+            </div>
+            <div class="col-md-3">
+                <label>Precio Total</label>
+                <input type="text" id="precio_lote" class="form-control" readonly>
+            </div>
+            <div class="col-md-3">
+                <label>Observaciones</label>
+                <textarea id="observacionesLote" class="form-control" rows="2" placeholder="Notas adicionales (opcional)"></textarea>
+            </div>
+            
+            <div class="col-md-2 d-flex align-items-end">
+                <button type="button" id="btnAgregar" class="btn btn-primary btn-sm w-100">➕ Agregar</button>
+            </div>
+        </div>
+        
+        <!-- Mostrar tasa y cuota -->
+        <div class="row mt-3 mb-3 p-3 bg-light rounded">
+            <div class="col-md-6">
+                <label class="form-label fw-bold">Tasa de interés:</label>
+                <div id="tasaMostrada" class="fs-5">12.00%</div>
+            </div>
+            <div class="col-md-6">
+                <label class="form-label fw-bold">Cuota mensual estimada:</label>
+                <div id="cuotaMostrada" class="fs-5 text-success">S/ --</div>
+            </div>
+        </div>
+        <hr>
+        
+        <table class="table table-bordered mt-3">
+            <thead>
+                <tr>
+                    <th>Lote</th>
+                    <th>Precio (S/)</th>
+                    <th>Cliente</th>
+                    <th>Método Pago</th>
+                    <th>Fecha Pago</th>
+                    <th>N° Cuotas</th>
+                    <th>Inicial (S/)</th>
+                    <th>TasaInterés</th>
+                    <th>Obs.</th> 
+                    <th>Acción</th>
+                </tr>
+            </thead>
+            <tbody id="detalleTabla">
+                <tr><td colspan="8" class="text-center text-muted">Sin lotes agregados</td></tr>
+            </tbody>
+        </table>
 
-{{-- @include('cotizaciones.form') --}}
-
-<form action="{{ route('ventas.store') }}" method="POST">
-    @csrf
-<div class="row g-2">
-    <!-- Cliente -->
-        <div class="col-md-4">
-            <label>Cliente *</label>
-            <select name="cliente_id" class="form-select select2" required>
-                <option value="">Seleccione</option>
-                @foreach($clientes as $c)
-                <option value="{{ $c->id }}">{{ $c->nombre_cliente }}</option>
-                @endforeach
-            </select>
-        </div>
-        
-        <!-- Método de Pago (como relación) -->
-        <div class="col-md-4">
-            <label>Tipo de Venta *</label>
-            <select name="metodopago_id" class="form-select" required>
-                <option value="">Seleccione</option>
-                @foreach($metodos as $m)
-                <option value="{{ $m->id }}">{{ $m->nombre }}</option>
-                @endforeach
-            </select>
-        </div>
-
-        <!-- Fecha Pago -->
-        <div class="col-md-4">
-            <label>Fecha Pago *</label>
-            <input type="date" name="fecha_pago" class="form-control" value="{{ date('Y-m-d') }}" required>
-        </div>
-        
-        
-        <div class="col-md-3">
-            <label>Buscar Lote</label>
-            <select id="loteSelect" class="form-select select2">
-                <option value="">Seleccione un lote</option>
-                @foreach($lotes as $lote)
-                <option value="{{ $lote->id }}" 
-                    data-aream2="{{ $lote->area_m2 }}"
-                    data-preciom2="{{ $lote->precio_m2 }}"
-                    data-precio="{{ $lote->precio_m2 * $lote->area_m2 }}"
-                    data-desc="{{ $lote->codigo }} - {{ $lote->nombre }}">
-                    {{ $lote->codigo }} - {{ $lote->nombre }}
-                </option>
-                @endforeach
-            </select>
-        </div>
-        
-        
-        <!-- N° Cuotas e Inicial -->
-        <div class="col-md-3">
-            <label>N° Cuotas</label>
-            <input type="number" name="numero_cuotas" class="form-control" min="0" value="0"> <!-- min="0" -->
-        </div>
-        <div class="col-md-3">
-            <label>Inicial (S/)</label>
-            <input type="number" step="0.01" name="inicial" class="form-control" value="0" required>
-        </div>
-        
-        <!-- Selector de tasa + campo oculto para enviar valor -->
-        <div class="col-md-3">
-            <label>Tasa de Interés (TEA)</label>
-            <select id="tasaSelect" class="form-select">
-                <option value="0.00">0% (Sin interés)</option>
-                <option value="0.12">12.00%</option>
-                <option value="0.15">15.00%</option>
-                <option value="0.18">18.00%</option>
-            </select>
-            <!-- Campo oculto para enviar al backend -->
-            <input type="hidden" name="tasa_interes" id="tasaInteresInput" value="0.00">
-        </div>
-        
-        <!-- Campos derivados del lote -->
-        <div class="col-md-3">
-            <label>Área m²</label>
-            <input type="text" id="area_m2" class="form-control" readonly>
-        </div>
-        <div class="col-md-3">
-            <label>Precio m²</label>
-            <input type="text" id="precio_m2" class="form-control" readonly>
-        </div>
-        <div class="col-md-3">
-            <label>Precio Total</label>
-            <input type="text" id="precio_lote" class="form-control" readonly>
-        </div>
-        <div class="col-md-3">
-            <label>Observaciones</label>
-            <textarea id="observacionesLote" class="form-control" rows="2" placeholder="Notas adicionales (opcional)"></textarea>
-        </div>
-        
-        <div class="col-md-2 d-flex align-items-end">
-            <button type="button" id="btnAgregar" class="btn btn-primary btn-sm w-100">➕ Agregar</button>
-        </div>
-    </div>
-    
-    <!-- Mostrar tasa y cuota -->
-    <div class="row mt-3 mb-3 p-3 bg-light rounded">
-        <div class="col-md-6">
-            <label class="form-label fw-bold">Tasa de interés:</label>
-            <div id="tasaMostrada" class="fs-5">12.00%</div>
-        </div>
-        <div class="col-md-6">
-            <label class="form-label fw-bold">Cuota mensual estimada:</label>
-            <div id="cuotaMostrada" class="fs-5 text-success">S/ --</div>
-        </div>
-    </div>
-    <hr>
-    
-    <table class="table table-bordered mt-3">
-        <thead>
-            <tr>
-                <th>Lote</th>
-                <th>Precio (S/)</th>
-                <th>Cliente</th>
-                <th>Método Pago</th>
-                <th>Fecha Pago</th>
-                <th>N° Cuotas</th>
-                <th>Inicial (S/)</th>
-                <th>TasaInterés</th>
-                 <th>Obs.</th> 
-                <th>Acción</th>
-            </tr>
-        </thead>
-        <tbody id="detalleTabla">
-            <tr><td colspan="8" class="text-center text-muted">Sin lotes agregados</td></tr>
-        </tbody>
-    </table>
-
-    <button type="submit" class="btn btn-outline-success btn-sm mt-3" id="btnGuardar" disabled>💾 Guardar</button>
-    <a href="{{ route('cotizaciones.index') }}" class="btn btn-outline-secondary btn-sm mt-3">↩️ Volver</a>
-</form>
+        <button type="submit" class="btn btn-outline-success btn-sm mt-3" id="btnGuardar" disabled>💾 Guardar</button>
+        <a href="{{ route('cotizaciones.index') }}" class="btn btn-outline-secondary btn-sm mt-3">↩️ Volver</a>
+    </form>
 @endsection
-
 
 @section('scripts')
     {{-- <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script> 
@@ -157,9 +152,7 @@
     <script src="{{asset('js/toastr.min.js')}}"></script>
     <script>
         $(document).ready(function() {
-            
             $('.select2').select2({ theme: 'bootstrap-5', width: '100%' });
-
             // Actualizar campo oculto de tasa al cambiar el select
             $('#tasaSelect').on('change', function() {
                 const tea = $(this).val(); // "0.12", "0.15", etc.
@@ -315,17 +308,14 @@
             // Inicializar valores
             $('#tasaMostrada').text('12.00%');
         });
-        </script>
+    </script>
 
     <script src="{{ asset('js/select2-focus.js') }}"></script>
 
     <script>
-        
         // Escuchar cambios en campos relevantes
         $('select[name="tasa_id"], input[name="inicial"], input[name="numero_cuotas"]').on('input change', recalcularCuota);
         $('#loteSelect').on('change', recalcularCuota);
-
     </script>
-
 
 @endsection
