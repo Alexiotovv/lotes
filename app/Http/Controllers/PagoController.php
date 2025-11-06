@@ -72,7 +72,7 @@ class PagoController extends Controller
             'monto_pagado' => 'required|numeric|min:0.01',
             'metodo_pago' => 'nullable|string|max:50',
             'referencia' => 'nullable|string|max:100',
-            'voucher' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048', // hasta 2MB
+            'voucher' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:4048', // hasta 2MB
             'observacion' => 'nullable|string',
         ]);
 
