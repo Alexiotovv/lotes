@@ -69,9 +69,6 @@ Route::middleware(['auth', 'vendedor'])->group(function () {
 
 // === Rutas solo para ADMINISTRADORES ===
 Route::middleware(['auth', 'admin'])->group(function () {
-    // Aquí va TODO lo demás: lotes, pagos, tesorería, reportes, etc.
-    // Copie aquí todas las rutas que actualmente están bajo el grupo 'auth'
-    // EXCEPTO las 4 que ya asignamos al vendedor.
 
     Route::prefix('compras')->name('compras.')->group(function () {
         Route::get('/', [CompraController::class, 'index'])->name('index');

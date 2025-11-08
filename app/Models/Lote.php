@@ -31,6 +31,10 @@ class Lote extends Model
     {
         return $this->belongsTo(EstadoLote::class, 'estado_lote_id');
     }
-
+    
+    public function venta()
+    {
+        return $this->hasOne(\App\Models\Venta::class, 'lote_id');
+    }
 
 }

@@ -13,11 +13,33 @@ use Illuminate\Support\Facades\DB;
 
 class ReservaController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $reservas = Reserva::with(['cliente', 'lote', 'caja', 'user'])
-            ->latest()
-            ->paginate(15);
+        $query = Reserva::with(['cliente', 'lote', 'caja', 'user']);
+
+        // Búsqueda por cliente, lote o fecha
+        if ($search = $request->input('search')) {
+            $query->where(function ($q) use ($search) {
+                // Buscar por cliente: nombre o dni_ruc
+                $q->whereHas('cliente', function ($q2) use ($search) {
+                    $q2->where('nombre_cliente', 'LIKE', "%$search%")
+                    ->orWhere('dni_ruc', 'LIKE', "%$search%");
+                })
+                // Buscar por lote: código o nombre
+                ->orWhereHas('lote', function ($q2) use ($search) {
+                    $q2->where('codigo', 'LIKE', "%$search%")
+                    ->orWhere('nombre', 'LIKE', "%$search%");
+                })
+                // Buscar por fecha exacta (YYYY-MM-DD)
+                ->orWhereRaw("DATE(fecha_reserva) = ?", [$search])
+                // Buscar por ID de reserva
+                ->orWhere('id', 'LIKE', "%$search%");
+            });
+        }
+
+        // Ordenar por fecha descendente
+        $reservas = $query->latest()->paginate(10)->appends($request->query());
+
         return view('reservas.index', compact('reservas'));
     }
 

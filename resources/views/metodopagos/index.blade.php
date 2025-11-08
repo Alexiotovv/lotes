@@ -6,7 +6,7 @@
 
 @section('content')
 <div class="d-flex justify-content-between align-items-center mb-3">
-    <h3>Listado Tipos de Venta (Métodos de Pago)</h3>
+    <h3>Listado Tipos de Venta</h3>
     <a href="{{ route('metodopagos.create') }}" class="btn btn-light btn-sm">➕ Nuevo Método</a>
 </div>
 

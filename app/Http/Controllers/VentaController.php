@@ -19,23 +19,47 @@ class VentaController extends Controller
         $search = $request->get('search');
         $query = Venta::with(['cliente', 'lote', 'metodopago']);
 
+        // ✅ Filtrar por usuario si no es admin
+        if (!auth()->user()->is_admin) {
+            $query->where('user_id', auth()->id());
+        }
+
         if ($search) {
             $query->where(function($q) use ($search) {
                 $q->where('id', 'like', "%{$search}%")
-                  ->orWhereHas('cliente', fn($q2) => $q2->where('nombre_cliente', 'like', "%{$search}%"))
-                  ->orWhereHas('lote', fn($q2) => $q2->where('codigo', 'like', "%{$search}%"));
+                ->orWhereHas('cliente', fn($q2) => $q2->where('dni_ruc', 'like', "%{$search}%"))
+                ->orWhereHas('cliente', fn($q2) => $q2->where('nombre_cliente', 'like', "%{$search}%"))
+                ->orWhereHas('lote', fn($q2) => $q2->where('codigo', 'like', "%{$search}%"));
             });
         }
 
         $ventas = $query->latest()->paginate(10); 
+
         return view('ventas.index', compact('ventas', 'search'));
     }
+   
+    // public function index(Request $request)
+    // {
+    //     $search = $request->get('search');
+    //     $query = Venta::with(['cliente', 'lote', 'metodopago']);
+
+    //     if ($search) {
+    //         $query->where(function($q) use ($search) {
+    //             $q->where('id', 'like', "%{$search}%")
+    //               ->orWhereHas('cliente', fn($q2) => $q2->where('nombre_cliente', 'like', "%{$search}%"))
+    //               ->orWhereHas('lote', fn($q2) => $q2->where('codigo', 'like', "%{$search}%"));
+    //         });
+    //     }
+
+    //     $ventas = $query->latest()->paginate(10); 
+    //     return view('ventas.index', compact('ventas', 'search'));
+    // }
 
     public function create()
     {
         $clientes = Cliente::all();
         $metodos = MetodoPago::all();
-        $lotes = Lote::where('estado_lote_id', 1)->get();
+        $lotes = Lote::whereIn('estado_lote_id', [1, 2])->get();
         $tasas = Tasa::all();
         return view('ventas.create', compact('clientes', 'metodos', 'lotes','tasas'));
     }
@@ -124,7 +148,7 @@ class VentaController extends Controller
                     'cuota' => round($cuota, 2),
                     'observaciones' => $detalle['observaciones'] ?? null,
                     'cronograma_generado' => false,
-                    'estado' => $esCredito ? 'vigente' : 'contado',
+                    'estado' => $esCredito ? 'vigente' : 'cerrado',
                 ]);
 
                 // Marcar lote como vendido

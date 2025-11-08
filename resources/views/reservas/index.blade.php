@@ -5,7 +5,35 @@
     <h3>Reservas de Lotes</h3>
     <a href="{{ route('reservas.create') }}" class="btn btn-primary btn-sm">➕ Nueva Reserva</a>
 </div>
-
+<!-- 🔍 Barra de búsqueda -->
+<form method="GET" action="{{ route('reservas.index') }}" class="mb-4">
+    <div class="row g-3">
+        <div class="col-md-8">
+            <div class="input-group">
+                <span class="input-group-text">🔍</span>
+                <input 
+                    type="text" 
+                    name="search" 
+                    class="form-control form-control-lg" 
+                    placeholder="Buscar por: Cliente, DNI, Lote (código/nombre), Fecha (AAAA-MM-DD) o ID"
+                    value="{{ request('search') }}"
+                >
+            </div>
+        </div>
+        <div class="col-md-4 d-flex align-items-end">
+            <button class="btn btn-outline-secondary w-100" type="submit">🔎 Buscar</button>
+            @if(request('search'))
+                <a href="{{ route('reservas.index') }}" class="btn btn-outline-danger w-100 ms-2">✕ Limpiar</a>
+            @endif
+        </div>
+    </div>
+</form>
+@if(request('search'))
+    <div class="alert alert-info mb-4">
+        <strong>Búsqueda:</strong> "{{ request('search') }}"
+        <a href="{{ route('reservas.index') }}" class="float-end text-decoration-none">✖️ Quitar filtro</a>
+    </div>
+@endif
 <table class="table table-bordered">
     <thead>
         <tr>

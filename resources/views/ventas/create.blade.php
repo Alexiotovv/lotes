@@ -45,7 +45,7 @@
             </div>
             
             
-            <div class="col-md-3">
+            {{-- <div class="col-md-3">
                 <label>Buscar Lote</label>
                 <select id="loteSelect" class="form-select select2">
                     <option value="">Seleccione un lote</option>
@@ -59,8 +59,40 @@
                     </option>
                     @endforeach
                 </select>
+            </div> --}}
+            <div class="col-md-3">
+                <div class="d-flex align-items-center">
+                    <label>Buscar Lote</label>
+                    <!-- Badge dinámico que se actualizará con JS -->
+                    <span id="badgeEstadoLote" class="badge ms-2" style="display:none;">&nbsp;</span>
+                </div>
+
+                <select id="loteSelect" class="form-select select2">
+                    <option value="">Seleccione un lote</option>
+                    @foreach($lotes as $lote)
+                        @php
+                            $estado = $lote->estadoLote->estado ?? 'sin estado';
+                            $esReservado = $estado === 'reservado';
+                            $clienteNombre = $esReservado ? ($lote->venta?->cliente?->nombre_cliente ?? 'Cliente no encontrado') : null;
+                            $claseBadge = $estado === 'disponible' ? 'bg-success' : ($estado === 'reservado' ? 'bg-warning text-dark' : 'bg-secondary');
+                        @endphp
+                        <option value="{{ $lote->id }}"
+                            data-aream2="{{ $lote->area_m2 }}"
+                            data-preciom2="{{ $lote->precio_m2 }}"
+                            data-precio="{{ $lote->precio_m2 * $lote->area_m2 }}"
+                            data-desc="{{ $lote->codigo }} - {{ $lote->nombre }}"
+                            data-estado="{{ $estado }}"
+                            data-cliente="{{ $clienteNombre ?? '' }}"
+                            data-clase-badge="{{ $claseBadge }}">
+                            {{ $lote->codigo }} - {{ $lote->nombre }}
+                            <span class="badge {{ $claseBadge }} ms-2">{{ $estado }}</span>
+                            @if($esReservado)
+                                <span class="text-muted ms-1">(Reservado a: {{ $clienteNombre }})</span>
+                            @endif
+                        </option>
+                    @endforeach
+                </select>
             </div>
-            
             <!-- N° Cuotas e Inicial -->
             <div class="col-md-3">
                 <label>N° Cuotas</label>
@@ -162,8 +194,39 @@
             });
 
             // Mostrar precio del lote
+            // $('#loteSelect').on('change', function() {
+            //     const opt = $(this).find(':selected');
+            //     const precio = opt.data('precio');
+            //     if (precio) {
+            //         $('#precio_lote').val(parseFloat(precio).toLocaleString('es-PE', { minimumFractionDigits: 2 }));
+            //         $('#area_m2').val(opt.data('aream2'));
+            //         $('#precio_m2').val(opt.data('preciom2'));
+            //     } else {
+            //         $('#precio_lote, #area_m2, #precio_m2').val('');
+            //     }
+            //     recalcularCuota();
+            // });
+
+            // Mostrar badge de estado al lado del label al cambiar el lote
             $('#loteSelect').on('change', function() {
                 const opt = $(this).find(':selected');
+                const estado = opt.data('estado');
+                const cliente = opt.data('cliente');
+                const claseBadge = opt.data('clase-badge');
+                const badge = $('#badgeEstadoLote');
+
+                if (estado) {
+                    let texto = estado.toUpperCase();
+                    if (estado === 'reservado' && cliente) {
+                        texto += ` - ${cliente}`;
+                    }
+
+                    badge.removeClass().addClass(`badge ${claseBadge} ms-2`).text(texto).show();
+                } else {
+                    badge.hide();
+                }
+
+                // Lógica existente para mostrar precio
                 const precio = opt.data('precio');
                 if (precio) {
                     $('#precio_lote').val(parseFloat(precio).toLocaleString('es-PE', { minimumFractionDigits: 2 }));

@@ -9,16 +9,37 @@ use App\Models\Caja;
 use Illuminate\Http\Request;
 class PagoController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $ventas = Venta::with(['cliente', 'cronogramas' => function($q) {
+        $query = Venta::with(['cliente', 'lote', 'cronogramas' => function($q) {
             $q->where('estado', 'pendiente')->orWhere('estado', 'vencido');
-        }])->get();
+        }]);
 
-        // Cargar cajas activas para el formulario de cobro
+        // Búsqueda por cliente o lote
+        if ($search = $request->input('search')) {
+            $query->where(function ($q) use ($search) {
+                // Buscar por cliente: nombre o dni_ruc
+                $q->whereHas('cliente', function ($q2) use ($search) {
+                    $q2->where('nombre_cliente', 'LIKE', "%$search%")
+                    ->orWhere('dni_ruc', 'LIKE', "%$search%");
+                })
+                // Buscar por lote: código o nombre
+                ->orWhereHas('lote', function ($q2) use ($search) {
+                    $q2->where('codigo', 'LIKE', "%$search%")
+                    ->orWhere('nombre', 'LIKE', "%$search%");
+                })
+                // Buscar por ID de venta
+                ->orWhere('id', 'LIKE', "%$search%");
+            });
+        }
+
+        // Paginar ventas (no cronogramas)
+        $ventas = $query->latest()->paginate(15)->appends($request->query());
+
+        // Cajas activas
         $cajas = Caja::where('activo', true)->get();
 
-        return view('pagos.index', compact('ventas','cajas'));
+        return view('pagos.index', compact('ventas', 'cajas'));
     }
 
     public function detalle(Venta $venta)

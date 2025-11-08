@@ -12,12 +12,12 @@ class CompraController extends Controller
 {
     public function index()
     {
-        // Obtener concepto de "Compra de Terreno"
-        $conceptoCompra = Concepto::where('nombre', 'Compra de Terreno')->first();
-        $conceptoId = $conceptoCompra?->id;
+        // Obtener IDs de conceptos cuya categoría contenga "compra"
+        $conceptoIds = Concepto::where('categoria', 'like', '%compra%')
+            ->pluck('id');
 
         $compras = Movimiento::with(['caja', 'concepto', 'user'])
-            ->when($conceptoId, fn($q) => $q->where('concepto_id', $conceptoId))
+            ->whereIn('concepto_id', $conceptoIds)
             ->where('tipo', 'egreso')
             ->latest()
             ->paginate(15);

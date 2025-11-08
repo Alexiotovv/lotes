@@ -22,7 +22,12 @@
         @endif
     </div>
 </form>
-
+@if(request('search'))
+    <div class="alert alert-info mb-4">
+        <strong>Búsqueda:</strong> "{{ request('search') }}"
+        <a href="{{ route('ventas.index') }}" class="float-end text-decoration-none">✖️ Quitar filtro</a>
+    </div>
+@endif
 <table class="table table-bordered table-striped">
     <thead>
         <tr>
