@@ -29,11 +29,30 @@
         #vistaPrevia:hover #btnEliminarFoto {
             opacity: 1;
         }
-        #imagenVoucher {
-            object-fit: contain;
-            width: 100%;
-            height: auto;
-            max-height: 70vh;
+
+        /* Efecto de zoom al hacer hover */
+        .position-relative:hover #zoomIcon {
+            opacity: 0.9;
+        }
+
+        /* Aumentar tamaño de imagen al hacer hover */
+        .position-relative img {
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .position-relative img:hover {
+            transform: scale(1.03);
+            box-shadow: 0 8px 16px rgba(0,0,0,0.2);
+        }
+
+        /* Para pantallas pequeñas: ajustar tamaño del modal */
+        @media (max-width: 768px) {
+            .modal-lg {
+                max-width: 95%;
+            }
+            #imagenVoucher {
+                max-height: 60vh;
+            }
         }
     </style>
 @endsection
@@ -280,14 +299,29 @@
 
   <!-- Modal para ver imagen del voucher -->
   <div class="modal fade" id="modalImagenVoucher" tabindex="-1" aria-hidden="true">
-      <div class="modal-dialog modal-lg">
-          <div class="modal-content">
-              <div class="modal-header">
+      <div class="modal-dialog modal-lg modal-dialog-centered">
+          <div class="modal-content shadow-lg border-0">
+              <div class="modal-header bg-light">
                   <h5 class="modal-title">Comprobante de Pago</h5>
                   <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
               </div>
-              <div class="modal-body text-center">
-                  <img id="imagenVoucher" src="" alt="Voucher" class="img-fluid rounded" style="max-height: 70vh;">
+              <div class="modal-body text-center p-4">
+                  <!-- Imagen con efecto de zoom -->
+                  <div class="position-relative d-inline-block">
+                      <img 
+                          id="imagenVoucher" 
+                          src="" 
+                          alt="Voucher" 
+                          class="img-fluid rounded shadow-sm" 
+                          style="max-height: 75vh; cursor: zoom-in;"
+                      >
+                      <!-- Ícono de lupa (+) al hacer hover -->
+                      <div class="position-absolute top-50 start-50 translate-middle badge bg-primary fs-5 rounded-circle" 
+                          style="width: 40px; height: 40px; opacity: 0; transition: opacity 0.3s;" 
+                          id="zoomIcon">
+                          +
+                      </div>
+                  </div>
               </div>
           </div>
       </div>
@@ -360,9 +394,24 @@ function verPagos(venta_id) {
 
 // ✅ Función para ver imagen del voucher en modal
 function verImagenVoucher(src) {
-    document.getElementById('imagenVoucher').src = src;
+    const img = document.getElementById('imagenVoucher');
+    img.src = src;
+    img.style.transform = 'scale(1)'; // Resetear zoom
+    img.style.cursor = 'zoom-in';
+
     new bootstrap.Modal(document.getElementById('modalImagenVoucher')).show();
 }
+
+// Hacer doble clic o clic en la imagen para alternar zoom
+document.getElementById('imagenVoucher').addEventListener('click', function() {
+    if (this.style.transform === 'scale(1.5)') {
+        this.style.transform = 'scale(1)';
+        this.style.cursor = 'zoom-in';
+    } else {
+        this.style.transform = 'scale(1.5)';
+        this.style.cursor = 'zoom-out';
+    }
+});
 
 function modalCobrar(venta_id) {
     document.getElementById('venta_id').value = venta_id;
