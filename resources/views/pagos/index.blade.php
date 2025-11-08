@@ -253,26 +253,34 @@
                           <input type="text" name="referencia" class="form-control">
                         </div>
                         <div class="col-12">
-                            <label class="form-label">Comprobante de pago (voucher):</label>
-                            <div class="d-flex flex-column align-items-start">
-                                <!-- Botón para cámara -->
-                                <button type="button" class="btn btn-outline-secondary btn-sm mb-2" id="btnCamara">
-                                    📷 Tomar Foto
-                                </button>
-                                
-                                <!-- Input file oculto -->
-                                <input type="file" name="voucher" id="voucherInput" class="form-control d-none" accept="image/*" capture="environment">
-                                
-                                <!-- Vista previa -->
-                                <div id="vistaPrevia" class="mt-2" style="display:none; width: 180px; height: 180px; border: 1px dashed #ccc; border-radius: 8px; overflow: hidden; position: relative;">
-                                    <img id="imgPrevia" src="" alt="Vista previa" style="width: 100%; height: 100%; object-fit: cover;">
-                                    <button type="button" class="btn btn-danger btn-sm" id="btnEliminarFoto" style="position: absolute; top: 4px; right: 4px; padding: 2px 6px;">
-                                        ✕
-                                    </button>
-                                </div>
-                            </div>
-                            <small class="text-muted">Formatos: JPG, PNG, GIF (máx. 2MB)</small>
-                        </div>
+                          <label class="form-label">Comprobante de pago (voucher):</label>
+                          <div class="d-flex flex-column align-items-start">
+                              <!-- Botones para cámara y explorador -->
+                              <div class="d-flex gap-2 mb-2">
+                                  <button type="button" class="btn btn-outline-secondary btn-sm" id="btnCamara">
+                                      📷 Tomar Foto
+                                  </button>
+                                  <button type="button" class="btn btn-outline-info btn-sm" id="btnCargarFoto">
+                                      📁 Cargar Foto
+                                  </button>
+                              </div>
+                              
+                              <!-- Input file oculto para cámara (ya existente) -->
+                              <input type="file" name="voucher" id="voucherInput" class="form-control d-none" accept="image/*" capture="environment">
+                              
+                              <!-- Input file oculto para explorador -->
+                              <input type="file" name="voucher_explorador" id="voucherExploradorInput" class="form-control d-none" accept="image/*">
+                              
+                              <!-- Vista previa -->
+                              <div id="vistaPrevia" class="mt-2" style="display:none; width: 180px; height: 180px; border: 1px dashed #ccc; border-radius: 8px; overflow: hidden; position: relative;">
+                                  <img id="imgPrevia" src="" alt="Vista previa" style="width: 100%; height: 100%; object-fit: cover;">
+                                  <button type="button" class="btn btn-danger btn-sm" id="btnEliminarFoto" style="position: absolute; top: 4px; right: 4px; padding: 2px 6px;">
+                                      ✕
+                                  </button>
+                              </div>
+                          </div>
+                          <small class="text-muted">Formatos: JPG, PNG, GIF (máx. 2MB)</small>
+                      </div>
                         <div class="col-12">
                           <label class="form-label">Observación:</label>
                           <textarea name="observacion" class="form-control" rows="2" placeholder="Notas adicionales..."></textarea>
@@ -504,14 +512,33 @@ document.getElementById('formCobro')?.addEventListener('submit', function(e) {
 
 
   // === Manejo de cámara y vista previa ===
-    document.getElementById('btnCamara').addEventListener('click', function() {
-        document.getElementById('voucherInput').click();
-    });
 
-    document.getElementById('voucherInput').addEventListener('change', async function(e) {
+  // Tomar foto con cámara
+  document.getElementById('btnCamara').addEventListener('click', function() {
+      document.getElementById('voucherInput').click();
+  });
+
+  // Cargar foto desde explorador
+  document.getElementById('btnCargarFoto').addEventListener('click', function() {
+      document.getElementById('voucherExploradorInput').click();
+  });
+
+  // Procesar imagen desde cámara
+  document.getElementById('voucherInput').addEventListener('change', async function(e) {
       const file = e.target.files[0];
       if (!file) return;
+      await procesarImagen(file);
+  });
 
+  // Procesar imagen desde explorador
+  document.getElementById('voucherExploradorInput').addEventListener('change', async function(e) {
+      const file = e.target.files[0];
+      if (!file) return;
+      await procesarImagen(file);
+  });
+
+  // Función para procesar y comprimir imagen
+  async function procesarImagen(file) {
       // Mostrar vista previa temporal
       const reader = new FileReader();
       reader.onload = function(event) {
@@ -521,10 +548,9 @@ document.getElementById('formCobro')?.addEventListener('submit', function(e) {
       reader.readAsDataURL(file);
 
       // === COMPRESIÓN DE IMAGEN ===
-      const compressedFile = await compressImage(file, 0.6); // calidad entre 0.5–0.7 suele ir bien
+      const compressedFile = await compressImage(file, 0.6);
       replaceFileInput(compressedFile);
-  });
-
+  }
 
   // Función para comprimir imagen con <canvas>
   function compressImage(file, quality = 0.6) {
@@ -536,17 +562,15 @@ document.getElementById('formCobro')?.addEventListener('submit', function(e) {
           };
           img.onload = () => {
               const canvas = document.createElement('canvas');
-              const MAX_WIDTH = 1024; // puedes bajarlo a 800 si quieres más compresión
+              const MAX_WIDTH = 1024;
               const scale = Math.min(MAX_WIDTH / img.width, 1);
               canvas.width = img.width * scale;
               canvas.height = img.height * scale;
               const ctx = canvas.getContext('2d');
               ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
 
-              // Exportar como JPEG comprimido
               canvas.toBlob(
                   (blob) => {
-                      // Crear nuevo archivo tipo File para que Laravel lo lea normalmente
                       const compressed = new File([blob], file.name.replace(/\.[^.]+$/, '.jpg'), {
                           type: 'image/jpeg',
                           lastModified: Date.now(),
@@ -565,9 +589,15 @@ document.getElementById('formCobro')?.addEventListener('submit', function(e) {
   function replaceFileInput(newFile) {
       const dataTransfer = new DataTransfer();
       dataTransfer.items.add(newFile);
-      document.getElementById('voucherInput').files = dataTransfer.files;
+      document.getElementById('voucherInput').files = dataTransfer.files; // ✅ Usar el input principal
   }
 
+  // Eliminar foto
+  document.getElementById('btnEliminarFoto').addEventListener('click', function() {
+      document.getElementById('voucherInput').value = '';
+      document.getElementById('voucherExploradorInput').value = '';
+      document.getElementById('vistaPrevia').style.display = 'none';
+  });
 
 
 
