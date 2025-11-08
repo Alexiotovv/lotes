@@ -29,6 +29,12 @@
         #vistaPrevia:hover #btnEliminarFoto {
             opacity: 1;
         }
+        #imagenVoucher {
+            object-fit: contain;
+            width: 100%;
+            height: auto;
+            max-height: 70vh;
+        }
     </style>
 @endsection
 @section('content')
@@ -271,12 +277,56 @@
       </div>
     </div>
   </div>
+
+  <!-- Modal para ver imagen del voucher -->
+  <div class="modal fade" id="modalImagenVoucher" tabindex="-1" aria-hidden="true">
+      <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+              <div class="modal-header">
+                  <h5 class="modal-title">Comprobante de Pago</h5>
+                  <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+              </div>
+              <div class="modal-body text-center">
+                  <img id="imagenVoucher" src="" alt="Voucher" class="img-fluid rounded" style="max-height: 70vh;">
+              </div>
+          </div>
+      </div>
+  </div>
 @endsection
 
 @section('scripts')
 <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
 
 <script>
+// function verPagos(venta_id) {
+//     fetch(`/pagos/${venta_id}/detalle`)
+//         .then(r => r.json())
+//         .then(pagos => {
+//             const tbody = document.querySelector('#tablaDetallePagos tbody');
+//             tbody.innerHTML = '';
+//             pagos.forEach((p, i) => {
+//                 const voucherHtml = p.voucher 
+//                     ? `<a href="/storage/${p.voucher}" target="_blank" class="btn btn-sm btn-outline-primary">🖼️ Ver</a>`
+//                     : '—';
+                
+//                 // Mostrar número de cuota o guion si no existe
+//                 const nroCuota = p.nro_cuota ? `#${p.nro_cuota}` : '—';
+                
+//                 tbody.innerHTML += `
+//                     <tr>
+//                         <td>${i + 1}</td>
+//                         <td>${nroCuota}</td> <!-- ← Nueva columna -->
+//                         <td>${p.fecha_pago}</td>
+//                         <td>S/ ${parseFloat(p.monto_pagado).toFixed(2)}</td>
+//                         <td>${p.metodo_pago ?? '-'}</td>
+//                         <td>${p.referencia ?? '-'}</td>
+//                         <td>${voucherHtml}</td>
+//                     </tr>
+//                 `;
+//             });
+//             new bootstrap.Modal(document.getElementById('modalPagos')).show();
+//         });
+// }
 function verPagos(venta_id) {
     fetch(`/pagos/${venta_id}/detalle`)
         .then(r => r.json())
@@ -284,8 +334,9 @@ function verPagos(venta_id) {
             const tbody = document.querySelector('#tablaDetallePagos tbody');
             tbody.innerHTML = '';
             pagos.forEach((p, i) => {
+                // ✅ Botón para ver imagen en modal
                 const voucherHtml = p.voucher 
-                    ? `<a href="/storage/${p.voucher}" target="_blank" class="btn btn-sm btn-outline-primary">🖼️ Ver</a>`
+                    ? `<button type="button" class="btn btn-sm btn-outline-primary" onclick="verImagenVoucher('/storage/${p.voucher}')">🖼️ Ver</button>`
                     : '—';
                 
                 // Mostrar número de cuota o guion si no existe
@@ -305,6 +356,12 @@ function verPagos(venta_id) {
             });
             new bootstrap.Modal(document.getElementById('modalPagos')).show();
         });
+}
+
+// ✅ Función para ver imagen del voucher en modal
+function verImagenVoucher(src) {
+    document.getElementById('imagenVoucher').src = src;
+    new bootstrap.Modal(document.getElementById('modalImagenVoucher')).show();
 }
 
 function modalCobrar(venta_id) {
