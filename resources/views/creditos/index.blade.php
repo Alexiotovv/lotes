@@ -27,55 +27,56 @@
         <a href="{{ route('creditos.index') }}" class="float-end text-decoration-none">✖️ Quitar filtro</a>
     </div>
 @endif
-<table class="table table-bordered table-striped">
-    <thead>
-        <tr>
-            <th>ID</th>
-            <th>Cliente</th>
-            <th>Fecha Venta</th>
-            <th>Próximo Pago</th>
-            <th>Cuota Mes</th>
-            <th>Total Deuda</th>
-            <th>Total Venta</th>
-            {{-- <th>Calendario</th> --}}
-            <th>Pagos</th>
-        </tr>
-    </thead>
-    <tbody>
-        @foreach($creditos as $credito)
-        <tr>
-            <td>{{ $credito->id }}</td>
-            <td>{{ $credito->cliente->nombre_cliente }}</td>
-            <td>{{ $credito->created_at->format('d/m/Y') }}</td>
-            <td>
-                @if($credito->proxima_cuota_fecha)
-                    @if($credito->estado_proxima == 'vencido')
-                        <span class="badge bg-danger">{{ $credito->proxima_cuota_fecha }}</span>
+<div class="table-responsive">
+    <table class="table table-bordered table-striped">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Cliente</th>
+                <th>Fecha Venta</th>
+                <th>Próximo Pago</th>
+                <th>Cuota Mes</th>
+                <th>Total Deuda</th>
+                <th>Total Venta</th>
+                {{-- <th>Calendario</th> --}}
+                <th>Pagos</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach($creditos as $credito)
+            <tr>
+                <td>{{ $credito->id }}</td>
+                <td>{{ $credito->cliente->nombre_cliente }}</td>
+                <td>{{ $credito->created_at->format('d/m/Y') }}</td>
+                <td>
+                    @if($credito->proxima_cuota_fecha)
+                        @if($credito->estado_proxima == 'vencido')
+                            <span class="badge bg-danger">{{ $credito->proxima_cuota_fecha }}</span>
+                        @else
+                            <span class="badge bg-success">{{ $credito->proxima_cuota_fecha }}</span>
+                        @endif
                     @else
-                        <span class="badge bg-success">{{ $credito->proxima_cuota_fecha }}</span>
+                        <span class="badge bg-secondary">FINALIZADO</span>
                     @endif
-                @else
-                    <span class="badge bg-secondary">FINALIZADO</span>
-                @endif
-            </td>
-            <td><span class="badge bg-info">{{ number_format($credito->cuota, 2) }}</span></td>
-            <td><span class="badge bg-warning">{{ number_format($credito->total_deuda, 2) }}</span></td>
-            <td><span class="badge bg-dark">{{ number_format($credito->lote_precio_total, 2) }}</span></td>
-            {{-- <td>
-                <a href="{{ route('creditos.calendario', $credito) }}" target="_blank" class="btn btn-sm btn-primary">
-                    📅 Calendario
-                </a>
-            </td> --}}
-            <td>
-                <a href="{{ route('creditos.pagos', $credito) }}" target="_blank" class="btn btn-sm btn-success">
-                    💰 Realizados
-                </a>
-            </td>
-        </tr>
-        @endforeach
-    </tbody>
-</table>
-
+                </td>
+                <td><span class="badge bg-info">{{ number_format($credito->cuota, 2) }}</span></td>
+                <td><span class="badge bg-warning">{{ number_format($credito->total_deuda, 2) }}</span></td>
+                <td><span class="badge bg-dark">{{ number_format($credito->lote_precio_total, 2) }}</span></td>
+                {{-- <td>
+                    <a href="{{ route('creditos.calendario', $credito) }}" target="_blank" class="btn btn-sm btn-primary">
+                        📅 Calendario
+                    </a>
+                </td> --}}
+                <td>
+                    <a href="{{ route('creditos.pagos', $credito) }}" target="_blank" class="btn btn-sm btn-success">
+                        💰 Realizados
+                    </a>
+                </td>
+            </tr>
+            @endforeach
+        </tbody>
+    </table>
+</div>
 {{ $creditos->links() }}
 @endsection
 

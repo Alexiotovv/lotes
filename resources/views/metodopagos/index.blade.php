@@ -9,42 +9,43 @@
     <h3>Listado Tipos de Venta</h3>
     <a href="{{ route('metodopagos.create') }}" class="btn btn-light btn-sm">➕ Nuevo Método</a>
 </div>
-
-<table class="table table-bordered table-striped" id="metodopagosTable">
-    <thead>
-        <tr>
-            <th>Nombre</th>
-            <th>Descripción</th>
-            <th>Tipo de Venta</th>
-            <th>Activo</th>
-            <th width="140">Acciones</th>
-        </tr>
-    </thead>
-    <tbody>
-        @foreach($metodopagos as $metodo)
-        <tr>
-            <td>{{ $metodo->nombre }}</td>
-            <td>{{ $metodo->descripcion }}</td>
-            <td>
-                @if($metodo->es_credito)
-                    <span class="badge bg-success">Crédito</span>
-                @else
-                    <span class="badge bg-secondary">Contado</span>
-                @endif
-            </td>
-            <td>{{ $metodo->activo ? '✅ Sí' : '❌ No' }}</td>
-            <td>
-                <a href="{{ route('metodopagos.edit', $metodo) }}" class="btn btn-sm btn-light btn-sm">✏️ Editar</a>
-                <form action="{{ route('metodopagos.destroy', $metodo) }}" method="POST" class="d-inline" onsubmit="return confirm('¿Eliminar método de pago?')">
-                    @csrf
-                    @method('DELETE')
-                    <button class="btn btn-sm btn-light btn-sm">❌ Eliminar</button>
-                </form>
-            </td>
-        </tr>
-        @endforeach
-    </tbody>
-</table>
+<div class="table-responsive">
+    <table class="table table-bordered table-striped" id="metodopagosTable">
+        <thead>
+            <tr>
+                <th>Nombre</th>
+                <th>Descripción</th>
+                <th>Tipo de Venta</th>
+                <th>Activo</th>
+                <th width="140">Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach($metodopagos as $metodo)
+            <tr>
+                <td>{{ $metodo->nombre }}</td>
+                <td>{{ $metodo->descripcion }}</td>
+                <td>
+                    @if($metodo->es_credito)
+                        <span class="badge bg-success">Crédito</span>
+                    @else
+                        <span class="badge bg-secondary">Contado</span>
+                    @endif
+                </td>
+                <td>{{ $metodo->activo ? '✅ Sí' : '❌ No' }}</td>
+                <td>
+                    <a href="{{ route('metodopagos.edit', $metodo) }}" class="btn btn-sm btn-light btn-sm">✏️ Editar</a>
+                    <form action="{{ route('metodopagos.destroy', $metodo) }}" method="POST" class="d-inline" onsubmit="return confirm('¿Eliminar método de pago?')">
+                        @csrf
+                        @method('DELETE')
+                        <button class="btn btn-sm btn-light btn-sm">❌ Eliminar</button>
+                    </form>
+                </td>
+            </tr>
+            @endforeach
+        </tbody>
+    </table>
+</div>
 @endsection
 
 @section('scripts')

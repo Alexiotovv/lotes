@@ -34,45 +34,46 @@
         <a href="{{ route('reservas.index') }}" class="float-end text-decoration-none">✖️ Quitar filtro</a>
     </div>
 @endif
-<table class="table table-bordered">
-    <thead>
-        <tr>
-            <th>ID</th>
-            <th>Cliente</th>
-            <th>Lote</th>
-            <th>Monto</th>
-            <th>Fecha</th>
-            <th>Caja</th>
-            <th>Acciones</th>
-        </tr>
-    </thead>
-    <tbody>
-        @foreach($reservas as $r)
-        <tr>
-            <td>{{ $r->id }}</td>
-            <td>{{ $r->cliente->nombre_cliente }}</td>
-            <td>{{ $r->lote->codigo }} - {{ $r->lote->nombre }}</td>
-            <td>S/ {{ number_format($r->monto, 2) }}</td>
-            <td>{{ $r->fecha_reserva }}</td>
-            <td>{{ $r->caja->nombre }}</td>
-            <td>
+<div class="table-responsive">
+    <table class="table table-bordered">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Cliente</th>
+                <th>Lote</th>
+                <th>Monto</th>
+                <th>Fecha</th>
+                <th>Caja</th>
+                <th>Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach($reservas as $r)
+            <tr>
+                <td>{{ $r->id }}</td>
+                <td>{{ $r->cliente->nombre_cliente }}</td>
+                <td>{{ $r->lote->codigo }} - {{ $r->lote->nombre }}</td>
+                <td>S/ {{ number_format($r->monto, 2) }}</td>
+                <td>{{ $r->fecha_reserva }}</td>
+                <td>{{ $r->caja->nombre }}</td>
+                <td>
 
-                @if(auth()->user()->is_admin())
-                    <button type="button" class="btn btn-warning btn-sm edit-btn" data-id="{{ $r->id }}">
-                        ✏️ Editar
-                    </button>
-                    <button type="button" class="btn btn-danger btn-sm delete-btn" data-id="{{ $r->id }}">
-                        🗑️
-                    </button>
-                @else
-                    --
-                @endif
-            </td>
-        </tr>
-        @endforeach
-    </tbody>
-</table>
-
+                    @if(auth()->user()->is_admin())
+                        <button type="button" class="btn btn-warning btn-sm edit-btn" data-id="{{ $r->id }}">
+                            ✏️ Editar
+                        </button>
+                        <button type="button" class="btn btn-danger btn-sm delete-btn" data-id="{{ $r->id }}">
+                            🗑️
+                        </button>
+                    @else
+                        --
+                    @endif
+                </td>
+            </tr>
+            @endforeach
+        </tbody>
+    </table>
+</div>
 {{ $reservas->links() }}
 
 <!-- Modal de Edición -->

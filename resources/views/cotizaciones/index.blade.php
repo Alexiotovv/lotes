@@ -21,46 +21,47 @@
         @endif
     </div>
 </form>
-<table class="table table-bordered table-striped">
-    <thead>
-        <tr>
-            <th>Id</th>
-            <th>Dni/Ruc</th>
-            <th>Cliente</th>
-            <th>Método Pago</th>
-            <th>Fecha Pago</th>
-            <th>Inicial</th>
-            <th>Interés</th>
-            <th>Cuota</th>
-            <th>Total (S/)</th>
-            <th>Acciones</th>
-        </tr>
-    </thead>
-    <tbody>
-        @foreach($cotizaciones as $c)
-        <tr>
-            <td>{{$c->id}}</td>
-            <td>{{ $c->cliente->dni_ruc }}</td>
-            <td>{{ $c->cliente->nombre_cliente }}</td>
-            <td>{{ $c->metodopago->nombre }}</td>
-            <td>{{ $c->fecha_pago }}</td>
-            <td>{{ $c->inicial }}</td>
-            <td>{{ $c->tasa_interes * 100 }}</td>
-            <td>S/ {{ number_format($c->cuota, 2) }}</td>
-            <td>S/ {{ number_format($c->lote?->area_m2 * $c->lote?->precio_m2, 2, '.', ',') }}</td>
-            <td>
-                <a href="{{ route('cotizaciones.cronograma', $c) }}" target="_blank" class="btn btn-outline-info btn-sm ms-1">🖨️ Cronograma</a>
-                <form action="{{ route('cotizaciones.destroy', $c->id) }}" method="POST" onsubmit="return confirm('¿Eliminar cotización?')" class="d-inline">
-                    @csrf @method('DELETE')
-                    <button class="btn btn-light btn-sm">❌</button>
-                </form>
+<div class="table-responsive">
+    <table class="table table-bordered table-striped">
+        <thead>
+            <tr>
+                <th>Id</th>
+                <th>Dni/Ruc</th>
+                <th>Cliente</th>
+                <th>Método Pago</th>
+                <th>Fecha Pago</th>
+                <th>Inicial</th>
+                <th>Interés</th>
+                <th>Cuota</th>
+                <th>Total (S/)</th>
+                <th>Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach($cotizaciones as $c)
+            <tr>
+                <td>{{$c->id}}</td>
+                <td>{{ $c->cliente->dni_ruc }}</td>
+                <td>{{ $c->cliente->nombre_cliente }}</td>
+                <td>{{ $c->metodopago->nombre }}</td>
+                <td>{{ $c->fecha_pago }}</td>
+                <td>{{ $c->inicial }}</td>
+                <td>{{ $c->tasa_interes * 100 }}</td>
+                <td>S/ {{ number_format($c->cuota, 2) }}</td>
+                <td>S/ {{ number_format($c->lote?->area_m2 * $c->lote?->precio_m2, 2, '.', ',') }}</td>
+                <td>
+                    <a href="{{ route('cotizaciones.cronograma', $c) }}" target="_blank" class="btn btn-outline-info btn-sm ms-1">🖨️ Cronograma</a>
+                    <form action="{{ route('cotizaciones.destroy', $c->id) }}" method="POST" onsubmit="return confirm('¿Eliminar cotización?')" class="d-inline">
+                        @csrf @method('DELETE')
+                        <button class="btn btn-light btn-sm">❌</button>
+                    </form>
 
-            </td>
-        </tr>
-        @endforeach
-    </tbody>
-</table>
-</table>
+                </td>
+            </tr>
+            @endforeach
+        </tbody>
+    </table>
+</div>
 
 <!-- Enlaces de paginación -->
 <div class="d-flex justify-content-end mt-3">

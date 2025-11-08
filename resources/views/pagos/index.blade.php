@@ -63,54 +63,55 @@
       <a href="{{ route('pagos.index') }}" class="float-end text-decoration-none">✖️ Quitar filtro</a>
   </div>
   @endif
-  <table id="tablaPagos" class="table table-bordered table-striped">
-      <thead class="table-dark">
-          <tr>
-              <th>ID</th>
-              <th>Dni</th>
-              <th>Cliente</th>
-              <th>Fecha Venta</th>
-              <th>Próximo Pago</th>
-              <th>Cuota Mensual (S/)</th>
-              <th>Total Deuda (S/)</th>
-              <th>Total Venta (S/)</th>
-              <th>Calendario</th>
-              <th>Pagos</th>
-              <th>Cobrar</th> <!-- Nueva columna -->
-          </tr>
-      </thead>
-      <tbody>
-          @foreach($ventas as $v)
-              @php
-                  $proxPago = $v->cronogramas->where('estado','pendiente')->first();
-                  $totalDeuda = $v->cronogramas->where('estado','!=','pagado')->sum('cuota');
-                  $totalVenta = $v->lote->area_m2 * $v->lote->precio_m2;
-              @endphp
-              <tr>
-                  <td>{{ $v->id }}</td>
-                  <td>{{ $v->cliente->dni_ruc }}</td>
-                  <td>{{ $v->cliente->nombre_cliente }}</td>
-                  <td>{{ $v->created_at->format('d/m/Y') }}</td>
-                  <td>
-                      @if($proxPago)
-                          <span class="badge bg-{{ $proxPago->fecha_pago < today() ? 'danger' : 'success' }}">
-                              {{ $proxPago->fecha_pago }}
-                          </span>
-                      @else
-                          <span class="badge bg-secondary">FINALIZADO</span>
-                      @endif
-                  </td>
-                  <td><span class="badge bg-info">{{ number_format($v->cuota, 2) }}</span></td>
-                  <td><span class="badge bg-primary">{{ number_format($totalDeuda, 2) }}</span></td>
-                  <td><span class="badge bg-dark">{{ number_format($totalVenta, 2) }}</span></td>
-                  <td><a href="{{ route('ventas.cronograma', $v) }}" target="_blank" class="btn btn-sm btn-primary">Calendario</a></td>
-                  <td><button class="btn btn-sm btn-success" onclick="verPagos({{ $v->id }})">Ver pagos</button></td>
-                  <td><button class="btn btn-sm btn-warning" onclick="modalCobrar({{ $v->id }})">Cobrar</button></td>
-              </tr>
-          @endforeach
-      </tbody>
-  </table>
-
+  <div class="table-responsive">
+    <table id="tablaPagos" class="table table-bordered table-striped">
+        <thead class="table-dark">
+            <tr>
+                <th>ID</th>
+                <th>Dni</th>
+                <th>Cliente</th>
+                <th>Fecha Venta</th>
+                <th>Próximo Pago</th>
+                <th>Cuota Mensual (S/)</th>
+                <th>Total Deuda (S/)</th>
+                <th>Total Venta (S/)</th>
+                <th>Calendario</th>
+                <th>Pagos</th>
+                <th>Cobrar</th> <!-- Nueva columna -->
+            </tr>
+        </thead>
+        <tbody>
+            @foreach($ventas as $v)
+                @php
+                    $proxPago = $v->cronogramas->where('estado','pendiente')->first();
+                    $totalDeuda = $v->cronogramas->where('estado','!=','pagado')->sum('cuota');
+                    $totalVenta = $v->lote->area_m2 * $v->lote->precio_m2;
+                @endphp
+                <tr>
+                    <td>{{ $v->id }}</td>
+                    <td>{{ $v->cliente->dni_ruc }}</td>
+                    <td>{{ $v->cliente->nombre_cliente }}</td>
+                    <td>{{ $v->created_at->format('d/m/Y') }}</td>
+                    <td>
+                        @if($proxPago)
+                            <span class="badge bg-{{ $proxPago->fecha_pago < today() ? 'danger' : 'success' }}">
+                                {{ $proxPago->fecha_pago }}
+                            </span>
+                        @else
+                            <span class="badge bg-secondary">FINALIZADO</span>
+                        @endif
+                    </td>
+                    <td><span class="badge bg-info">{{ number_format($v->cuota, 2) }}</span></td>
+                    <td><span class="badge bg-primary">{{ number_format($totalDeuda, 2) }}</span></td>
+                    <td><span class="badge bg-dark">{{ number_format($totalVenta, 2) }}</span></td>
+                    <td><a href="{{ route('ventas.cronograma', $v) }}" target="_blank" class="btn btn-sm btn-primary">Calendario</a></td>
+                    <td><button class="btn btn-sm btn-success" onclick="verPagos({{ $v->id }})">Ver pagos</button></td>
+                    <td><button class="btn btn-sm btn-warning" onclick="modalCobrar({{ $v->id }})">Cobrar</button></td>
+                </tr>
+            @endforeach
+        </tbody>
+    </table>
+  </div>
 
   <!-- Modal: Ver Pagos -->
   <div class="modal fade" id="modalPagos" tabindex="-1" aria-hidden="true">
@@ -121,20 +122,22 @@
           <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
         </div>
         <div class="modal-body">
-          <table class="table table-bordered" id="tablaDetallePagos">
-            <thead class="table-secondary">
-              <tr>
-                <th>#</th>
-                <th>N° Cuota</th> <!-- ← Nueva columna -->
-                <th>Fecha Pago</th>
-                <th>Monto</th>
-                <th>Método</th>
-                <th>Referencia</th>
-                <th>Voucher</th>
-              </tr>
-            </thead>
-            <tbody></tbody>
-          </table>
+          <div class="table-responsive">
+            <table class="table table-bordered" id="tablaDetallePagos">
+              <thead class="table-secondary">
+                <tr>
+                  <th>#</th>
+                  <th>N° Cuota</th> <!-- ← Nueva columna -->
+                  <th>Fecha Pago</th>
+                  <th>Monto</th>
+                  <th>Método</th>
+                  <th>Referencia</th>
+                  <th>Voucher</th>
+                </tr>
+              </thead>
+              <tbody></tbody>
+            </table>
+          </div>
           <button class="btn btn-outline-primary" onclick="exportarExcel()">📤 Exportar Excel</button>
           <button class="btn btn-outline-secondary" onclick="window.print()">🖨️ Imprimir</button>
         </div>

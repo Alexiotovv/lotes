@@ -25,7 +25,7 @@ return new class extends Migration
             ['nombre' => 'Servicios públicos', 'tipo' => 'egreso', 'categoria' => 'Operación', 'created_at' => now(), 'updated_at' => now()],
             ['nombre' => 'Sueldos', 'tipo' => 'egreso', 'categoria' => 'Personal', 'created_at' => now(), 'updated_at' => now()],
             ['nombre' => 'Compra de Terreno', 'tipo' => 'egreso', 'categoria' => 'Adquisiciones', 'created_at' => now(), 'updated_at' => now()],
-            ['nombre' => 'Otras Compras', 'tipo' => 'egreso', 'categoria' => 'Adquisiciones', 'created_at' => now(), 'updated_at' => now()],
+            ['nombre' => 'Otras Compras', 'tipo' => 'egreso', 'categoria' => 'Compras', 'created_at' => now(), 'updated_at' => now()],
         ]);
     }
 

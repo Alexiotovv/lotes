@@ -9,38 +9,39 @@
         <h3>Listado de Clientes</h3>
         <a href="{{ route('clientes.create') }}" class="btn btn-light btn-sm">➕ Nuevo Cliente</a>
     </div>
-    
-    <table class="table table-bordered table-striped" id="clientesTable">
-        <thead>
-            <tr>
-                <th>DNI/RUC</th>
-                <th>Nombre</th>
-                <th>Género</th>
-                <th>Dirección</th>
-                <th>Teléfono</th>
-                <th width="140">Acciones</th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach($clientes as $cliente)
-            <tr>
-                <td>{{ $cliente->dni_ruc }}</td>
-                <td>{{ $cliente->nombre_cliente }}</td>
-                <td>{{ $cliente->genero }}</td>
-                <td>{{ $cliente->direccion }}</td>
-                <td>{{ $cliente->telefono }}</td>
-                <td>
-                    <a href="{{ route('clientes.edit', $cliente) }}" class="btn btn-sm btn-light btn-sm">✏️ Editar</a>
-                    <form action="{{ route('clientes.destroy', $cliente) }}" method="POST" class="d-inline" onsubmit="return confirm('¿Eliminar cliente?')">
-                        @csrf
-                        @method('DELETE')
-                        <button class="btn btn-sm btn-light btn-sm">❌Eliminar</button>
-                    </form>
-                </td>
-            </tr>
-            @endforeach
-        </tbody>
-    </table>
+    <div class="table-responsive">
+        <table class="table table-bordered table-striped" id="clientesTable">
+            <thead>
+                <tr>
+                    <th>DNI/RUC</th>
+                    <th>Nombre</th>
+                    <th>Género</th>
+                    <th>Dirección</th>
+                    <th>Teléfono</th>
+                    <th width="140">Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach($clientes as $cliente)
+                <tr>
+                    <td>{{ $cliente->dni_ruc }}</td>
+                    <td>{{ $cliente->nombre_cliente }}</td>
+                    <td>{{ $cliente->genero }}</td>
+                    <td>{{ $cliente->direccion }}</td>
+                    <td>{{ $cliente->telefono }}</td>
+                    <td>
+                        <a href="{{ route('clientes.edit', $cliente) }}" class="btn btn-sm btn-light btn-sm">✏️ Editar</a>
+                        <form action="{{ route('clientes.destroy', $cliente) }}" method="POST" class="d-inline" onsubmit="return confirm('¿Eliminar cliente?')">
+                            @csrf
+                            @method('DELETE')
+                            <button class="btn btn-sm btn-light btn-sm">❌Eliminar</button>
+                        </form>
+                    </td>
+                </tr>
+                @endforeach
+            </tbody>
+        </table>
+    </div>
 @endsection
 
 @section('scripts')

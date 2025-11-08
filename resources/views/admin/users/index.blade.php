@@ -16,50 +16,47 @@
         </div>
     </div>
 
-    <div class="card">
-        <div class="card-body">
-            <table id="usersTable" class="table table-hover">
-                <thead>
-                    <tr>
-                        <th>ID</th>
-                        <th>Name</th>
-                        <th>Email</th>
-                        <th>Role</th>
-                        <th>Establecimiento</th>
-                        <th>Actions</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach($users as $user)
-                    <tr>
-                        <td>{{ $user->id }}</td>
-                        <td>{{ $user->name }}</td>
-                        <td>{{ $user->email }}</td>
-                        <td>
-                            @if ($user->is_admin==true)
-                                <span class="badge bg-warning text-dark">Admin User</span>
-                            @else
-                                <span class="badge bg-success">Regular User</span>
-                            @endif
-          
-                        </td>
-                        <td>{{ $user->almacen?->nombre_ipress ?? 'Sin asignar' }}</td>
-                        <td>
-                            <a href="{{ route('admin.users.edit', $user->id) }}" class="btn btn-sm btn-light">✏️ Edit</a>
-                            <form action="{{ route('admin.users.destroy', $user->id) }}" method="POST" style="display: inline;">
-                                @csrf
-                                @method('DELETE')
-                                <button type="submit" class="btn btn-sm btn-light" onclick="return confirm('Are you sure?')">🗑️ Eliminar</button>
-                            </form>
-                            
-                        </td>
-                    </tr>
-                    @endforeach
-                </tbody>
-            </table>
-        </div>
+    <div class="table-responsive">
+        <table id="usersTable" class="table table-hover">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Name</th>
+                    <th>Email</th>
+                    <th>Role</th>
+                    <th>Establecimiento</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach($users as $user)
+                <tr>
+                    <td>{{ $user->id }}</td>
+                    <td>{{ $user->name }}</td>
+                    <td>{{ $user->email }}</td>
+                    <td>
+                        @if ($user->is_admin==true)
+                            <span class="badge bg-warning text-dark">Admin User</span>
+                        @else
+                            <span class="badge bg-success">Regular User</span>
+                        @endif
+        
+                    </td>
+                    <td>{{ $user->almacen?->nombre_ipress ?? 'Sin asignar' }}</td>
+                    <td>
+                        <a href="{{ route('admin.users.edit', $user->id) }}" class="btn btn-sm btn-light">✏️ Edit</a>
+                        <form action="{{ route('admin.users.destroy', $user->id) }}" method="POST" style="display: inline;">
+                            @csrf
+                            @method('DELETE')
+                            <button type="submit" class="btn btn-sm btn-light" onclick="return confirm('Are you sure?')">🗑️ Eliminar</button>
+                        </form>
+                        
+                    </td>
+                </tr>
+                @endforeach
+            </tbody>
+        </table>
     </div>
-    
     @endsection
     
     @section('scripts')
