@@ -13,7 +13,7 @@ return new class extends Migration
     public function up()
     {
         Schema::table('ventas', function (Blueprint $table) {
-            $table->enum('estado', ['contado', 'vigente', 'finalizado'])->default('vigente');
+            $table->enum('estado', ['desistido', 'vigente', 'finalizado'])->default('vigente');
         });
     }
 

@@ -92,6 +92,13 @@
                     @endif
 
                     @if(Auth::user()->is_admin || Auth::user()->role === 'admin')
+                        <button type="button" class="btn btn-outline-secondary btn-sm btn-cambiar-estado" 
+                                data-id="{{ $v->id }}"
+                                data-cliente="{{ $v->cliente->nombre_cliente }}"
+                                data-lote="{{ $v->lote->codigo }}"
+                                data-estado="{{ $v->estado }}">
+                            🔄 Estado
+                        </button>
                         <form action="{{ route('ventas.destroy', $v->id) }}" method="POST" onsubmit="return confirm('¿Eliminar venta?')" class="d-inline">
                             @csrf
                             @method('DELETE')
@@ -108,4 +115,98 @@
 <div class="d-flex justify-content-end mt-3">
     {{ $ventas->links() }}
 </div>
+
+
+<!-- Modal único para cambiar estado -->
+<div class="modal fade" id="modalCambioEstado" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-sm">
+        <div class="modal-content">
+            <div class="modal-header bg-light">
+                <h5 class="modal-title">Cambiar Estado de Venta</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body text-center">
+                <p><strong>ID:</strong> <span id="ventaIdModal"></span></p>
+                <p><strong>Cliente:</strong> <span id="clienteModal"></span></p>
+                <p><strong>Lote:</strong> <span id="loteModal"></span></p>
+                <hr>
+                <form id="formCambioEstado" method="POST" action="">
+                    @csrf
+                    @method('PUT')
+
+                    <!-- Vigente -->
+                    <div class="mb-2">
+                        <label class="d-block mb-1">🟢 Vigente</label>
+                        <input type="radio" name="estado" value="vigente" 
+                               class="btn-check"
+                               id="vigente_modal"
+                               autocomplete="off">
+                        <label class="btn btn-outline-success btn-sm w-100" for="vigente_modal">
+                            Activar Vigencia
+                        </label>
+                    </div>
+
+                    <!-- Finalizado -->
+                    <div class="mb-2">
+                        <label class="d-block mb-1">⚪ Finalizado</label>
+                        <input type="radio" name="estado" value="finalizado" 
+                               class="btn-check"
+                               id="finalizado_modal"
+                               autocomplete="off">
+                        <label class="btn btn-outline-secondary btn-sm w-100" for="finalizado_modal">
+                            Marcar como Finalizado
+                        </label>
+                    </div>
+
+                    <!-- Desistido -->
+                    <div class="mb-2">
+                        <label class="d-block mb-1">🔴 Desistido</label>
+                        <input type="radio" name="estado" value="desistido" 
+                               class="btn-check"
+                               id="desistido_modal"
+                               autocomplete="off">
+                        <label class="btn btn-outline-danger btn-sm w-100" for="desistido_modal">
+                            Marcar como Desistido
+                        </label>
+                    </div>
+
+                    <div class="mt-4">
+                        <button type="submit" class="btn btn-primary btn-sm w-100">✅ Guardar</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+@endsection
+
+@section('scripts')
+    <script>
+        // Manejar clic en botones de cambio de estado
+        $(document).on('click', '.btn-cambiar-estado', function() {
+            const id = $(this).data('id');
+            const cliente = $(this).data('cliente');
+            const lote = $(this).data('lote');
+            const estadoActual = $(this).data('estado');
+            
+            // Actualizar contenido del modal
+            $('#ventaIdModal').text(id);
+            $('#clienteModal').text(cliente);
+            $('#loteModal').text(lote);
+            
+            // Actualizar radio buttons según estado actual
+            $('input[name="estado"]').prop('checked', false);
+            $(`input[name="estado"][value="${estadoActual}"]`).prop('checked', true);
+            
+            // Actualizar acción del formulario
+            $('#formCambioEstado').attr('action', `/ventas/${id}/cambiar-estado`);
+            
+            // Mostrar modal
+            const modal = new bootstrap.Modal(document.getElementById('modalCambioEstado'));
+            modal.show();
+        });
+    </script>
 @endsection

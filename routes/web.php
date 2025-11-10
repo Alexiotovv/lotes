@@ -10,7 +10,7 @@ use App\Http\Controllers\VentaController;
 use App\Http\Controllers\ReservaController;
 use App\Http\Controllers\ConfiguracionGeneralController;
 use App\Http\Controllers\CompraController;
-
+use App\Http\Controllers\TasaController;
 // === Autenticación ===
 Route::get('/login', [LoginController::class, 'showLoginForm'])->name('login');
 Route::post('/login', [LoginController::class, 'login']);
@@ -21,11 +21,11 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 });
 
-// === Rutas solo para VENDEDORES ===
+// === Rutas solo para VENDEDORES y admines ===
 Route::middleware(['auth', 'vendedor'])->group(function () {
     //Reservas
     Route::resource('reservas', ReservaController::class)->except(['show']);
-    Route::get('/reservas/{reserva}/edit', [ReservaController::class, 'edit'])->name('reservas.edit.ajax'); // para modal
+    // Route::get('/reservas/{reserva}/edit', [ReservaController::class, 'edit'])->name('reservas.edit.ajax'); // para modal
     
     // Créditos
     Route::get('/creditos', [\App\Http\Controllers\CreditoController::class, 'index'])->name('creditos.index');
@@ -69,6 +69,10 @@ Route::middleware(['auth', 'vendedor'])->group(function () {
 
 // === Rutas solo para ADMINISTRADORES ===
 Route::middleware(['auth', 'admin'])->group(function () {
+
+    Route::put('/ventas/{venta}/cambiar-estado', [VentaController::class, 'cambiarEstado'])->name('ventas.cambiar-estado');
+
+    Route::resource('tasas', TasaController::class);
 
     Route::prefix('compras')->name('compras.')->group(function () {
         Route::get('/', [CompraController::class, 'index'])->name('index');

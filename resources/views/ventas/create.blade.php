@@ -107,13 +107,12 @@
             <div class="col-md-3">
                 <label>Tasa de Interés (TEA)</label>
                 <select id="tasaSelect" class="form-select">
-                    <option value="0.00">0% (Sin interés)</option>
-                    <option value="0.12">12.00%</option>
-                    <option value="0.15">15.00%</option>
-                    <option value="0.18">18.00%</option>
+                    @foreach($tasas as $tasa)
+                        <option value="{{ $tasa->monto }}">{{ number_format($tasa->monto * 100, 2) }}% - {{ $tasa->nombre }}</option>
+                    @endforeach
                 </select>
                 <!-- Campo oculto para enviar al backend -->
-                <input type="hidden" name="tasa_interes" id="tasaInteresInput" value="0.00">
+                <input type="hidden" name="tasa_interes" id="tasaInteresInput" value="{{ $tasas->first()?->monto ?? 0.00 }}">
             </div>
             
             <!-- Campos derivados del lote -->
@@ -185,28 +184,20 @@
     <script>
         $(document).ready(function() {
             $('.select2').select2({ theme: 'bootstrap-5', width: '100%' });
+            
             // Actualizar campo oculto de tasa al cambiar el select
             $('#tasaSelect').on('change', function() {
                 const tea = $(this).val(); // "0.12", "0.15", etc.
                 $('#tasaInteresInput').val(tea); // Asigna al hidden
-                $('#tasaMostrada').text((parseFloat(tea) * 100).toFixed(2) + '%');
+                
+                // Obtener el valor por defecto del select (el primer option)
+                const tasaDefault = $('#tasaSelect').val();
+                $('#tasaMostrada').text((parseFloat(tasaDefault) * 100).toFixed(2) + '%');
+                
                 recalcularCuota();
             });
 
-            // Mostrar precio del lote
-            // $('#loteSelect').on('change', function() {
-            //     const opt = $(this).find(':selected');
-            //     const precio = opt.data('precio');
-            //     if (precio) {
-            //         $('#precio_lote').val(parseFloat(precio).toLocaleString('es-PE', { minimumFractionDigits: 2 }));
-            //         $('#area_m2').val(opt.data('aream2'));
-            //         $('#precio_m2').val(opt.data('preciom2'));
-            //     } else {
-            //         $('#precio_lote, #area_m2, #precio_m2').val('');
-            //     }
-            //     recalcularCuota();
-            // });
-
+        
             // Mostrar badge de estado al lado del label al cambiar el lote
             $('#loteSelect').on('change', function() {
                 const opt = $(this).find(':selected');

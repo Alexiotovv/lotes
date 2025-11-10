@@ -29,7 +29,7 @@
 @section('content')
 <div class="container-fluid">
     <div class="section-title">
-        <h3>⚙️ Configuración General</h3>
+        <h3>⚙️ Ajustes</h3>
     </div>
 
     <!-- Monto de Reserva -->
@@ -116,6 +116,8 @@
             </button>
         </div>
     </div>
+
+    
 </div>
 @endsection
 

@@ -38,29 +38,12 @@ class VentaController extends Controller
         return view('ventas.index', compact('ventas', 'search'));
     }
    
-    // public function index(Request $request)
-    // {
-    //     $search = $request->get('search');
-    //     $query = Venta::with(['cliente', 'lote', 'metodopago']);
-
-    //     if ($search) {
-    //         $query->where(function($q) use ($search) {
-    //             $q->where('id', 'like', "%{$search}%")
-    //               ->orWhereHas('cliente', fn($q2) => $q2->where('nombre_cliente', 'like', "%{$search}%"))
-    //               ->orWhereHas('lote', fn($q2) => $q2->where('codigo', 'like', "%{$search}%"));
-    //         });
-    //     }
-
-    //     $ventas = $query->latest()->paginate(10); 
-    //     return view('ventas.index', compact('ventas', 'search'));
-    // }
-
     public function create()
     {
         $clientes = Cliente::all();
         $metodos = MetodoPago::all();
         $lotes = Lote::whereIn('estado_lote_id', [1, 2])->get();
-        $tasas = Tasa::all();
+        $tasas = Tasa::orderBy('monto')->get();
         return view('ventas.create', compact('clientes', 'metodos', 'lotes','tasas'));
     }
 
@@ -379,5 +362,33 @@ class VentaController extends Controller
             ->with('success', 'Venta, sus movimientos y lote actualizados correctamente.');
     }
     
+
+    public function cambiarEstado(Request $request, Venta $venta)
+    {
+        if (!auth()->user()->is_admin) {
+            return back()->withErrors(['error' => 'No tiene permiso para cambiar el estado.']);
+        }
+
+        $request->validate([
+            'estado' => 'required|in:vigente,finalizado,desistido'
+        ]);
+
+        // if ($venta->estado === 'desistido') {
+        //     return back()->withErrors(['estado' => 'No se puede modificar el estado de una venta desistida.']);
+        // }
+
+        // Si el nuevo estado es "desistido", revertir el lote a "Disponible"
+        if ($request->estado === 'desistido') {
+            $venta->lote()->update(['estado_lote_id' => 1]); // Disponible
+        }
+        // Si el nuevo estado es "vigente" o "finalizado", actualizar el lote a "Vendido"
+        elseif (in_array($request->estado, ['vigente', 'finalizado'])) {
+            $venta->lote()->update(['estado_lote_id' => 3]); // Vendido
+        }
+
+        $venta->update(['estado' => $request->estado]);
+
+        return redirect()->route('ventas.index')->with('success', 'Estado actualizado correctamente.');
+    }
 
 }

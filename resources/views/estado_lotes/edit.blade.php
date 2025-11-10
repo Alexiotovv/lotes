@@ -10,7 +10,7 @@
         <div class="row">
             <div class="col-md-6 mb-2">
                 <label>Nombre del Estado</label>
-                <input type="text" name="estado" value="{{ old('estado', $estado_lote->estado) }}" class="form-control @error('estado') is-invalid @enderror">
+                <input type="text" name="estado" value="{{ old('estado', $estado_lote->estado) }}" class="form-control @error('estado') is-invalid @enderror" readonly>
                 @error('estado') <div class="invalid-feedback">{{ $message }}</div> @enderror
             </div>
 

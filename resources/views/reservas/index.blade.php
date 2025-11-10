@@ -59,9 +59,9 @@
                 <td>
 
                     @if(auth()->user()->is_admin())
-                        <button type="button" class="btn btn-warning btn-sm edit-btn" data-id="{{ $r->id }}">
+                        <a href="{{ route('reservas.edit', $r->id) }}" class="btn btn-warning btn-sm">
                             ✏️ Editar
-                        </button>
+                        </a>
                         <button type="button" class="btn btn-danger btn-sm delete-btn" data-id="{{ $r->id }}">
                             🗑️
                         </button>
@@ -84,7 +84,7 @@
                 <h5 class="modal-title">Editar Reserva</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
-            <form id="editForm" method="POST">
+            <form id="editForm" action="" method="POST" enctype="multipart/form-data">
                 @csrf
                 @method('PUT')
                 <div class="modal-body">

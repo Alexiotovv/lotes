@@ -14,14 +14,6 @@ return new class extends Migration
             $table->decimal('monto', 8, 6);  // Ej: 0.120000 (12%)
             $table->timestamps();
         });
-
-        // Opcional: Insertar TEA por defecto
-        DB::table('tasas')->insert([
-            'nombre' => 'TEA',
-            'monto' => 0.12,
-            'created_at' => now(),
-            'updated_at' => now(),
-        ]);
     }
 
     public function down()

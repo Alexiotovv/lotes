@@ -46,11 +46,11 @@
           🧾 Facturación <span>▾</span>
         </a>
         <div class="collapse ps-3" id="menuFacturacion">
-          <a href="{{ route('clientes.index') }}" class="nav-link">🗸 Listar Clientes</a>
-          <a href="{{ route('reservas.index') }}" class="nav-link">🗸 Listar Reservas</a>
-          <a href="{{ route('ventas.index') }}" class="nav-link">🗸 Listar Ventas</a>
-          <a href="{{ route('creditos.index') }}" class="nav-link">🗸 Listar Créditos</a>
-          <a href="{{ route('pagos.index') }}" class="nav-link">🗸 Listar Cobros</a>
+          <a href="{{ route('clientes.index') }}" class="nav-link">🗸 Clientes</a>
+          <a href="{{ route('reservas.index') }}" class="nav-link">🗸 Reservas</a>
+          <a href="{{ route('ventas.index') }}" class="nav-link">🗸 Ventas</a>
+          <a href="{{ route('creditos.index') }}" class="nav-link">🗸 Créditos</a>
+          <a href="{{ route('pagos.index') }}" class="nav-link">🗸 Cobros</a>
           <a href="{{ route('cotizaciones.index') }}" class="nav-link">🗸 Cotizaciones</a>          
         </div>
 
@@ -58,7 +58,7 @@
           📦 Logística <span>▾</span>
         </a>
         <div class="collapse ps-3" id="menuLogistica">
-          <a href="{{ route('lotes.indexView') }}" class="nav-link">🗸 Listar Lotes</a>
+          <a href="{{ route('lotes.indexView') }}" class="nav-link">🗸 Lotes</a>
           <a href="{{ route('compras.index') }}" class="nav-link">🗸 Compras</a>
           <a href="#" class="nav-link">🗸 Proveedores</a>
         
@@ -78,13 +78,15 @@
           ⚙️ Configuraciones <span>▾</span>
         </a>
         <div class="collapse ps-3" id="menuConfiguracion">
-          <a href="{{ route('admin.users.index') }}" class="nav-link">🗸 Listar Usuarios</a>
+          <a href="{{ route('admin.users.index') }}" class="nav-link">🗸 Gestión Usuarios</a>
           <a href="{{ route('metodopagos.index') }}" class="nav-link">🗸 Método de Pagos</a>
           <a href="{{ route('estado_lotes.index') }}" class="nav-link">🗸 Estados de Lotes</a>
-          <a href="{{ route('tesoreria.cajas.index') }}" class="nav-link">🗸 Cajas</a>
           <a href="{{ route('tesoreria.conceptos.index') }}" class="nav-link">🗸 Conceptos</a>
+          <a href="{{ route('tesoreria.cajas.index') }}" class="nav-link">🗸 Cajas</a>
+          <a href="{{ route('tasas.index') }}" class="nav-link">🗸 Tasas</a>
           <a href="{{ route('empresa.edit') }}" class="nav-link">🗸 Empresa</a>
-          <a href="{{ route('configuracion.edit') }}" class="nav-link">🗸 Configuracion General</a>
+          <a href="{{ route('configuracion.edit') }}" class="nav-link">🗸 Ajustes</a>
+
         </div>
 
         <a class="nav-link d-flex justify-content-between align-items-center" data-bs-toggle="collapse" href="#menuTesoreria">
@@ -121,9 +123,9 @@
           🧾 Facturación <span>▾</span>
         </a>
         <div class="collapse ps-3" id="menuFacturacion">
-          <a href="{{ route('reservas.index') }}" class="nav-link">🗸 Listar Reservas</a>
-          <a href="{{ route('clientes.index') }}" class="nav-link">🗸 Listar Clientes</a>
-          <a href="{{ route('pagos.index') }}" class="nav-link">🗸 Listar Cobros</a>
+          <a href="{{ route('reservas.index') }}" class="nav-link">🗸 Reservas</a>
+          <a href="{{ route('clientes.index') }}" class="nav-link">🗸 Clientes</a>
+          <a href="{{ route('pagos.index') }}" class="nav-link">🗸 Cobros</a>
           <a class="nav-link" href="{{ route('clientes.create') }}">➕ Registrar Cliente</a>
           <a class="nav-link" href="{{ route('creditos.index') }}"> 👥 Créditos Cliente</a>
           <a class="nav-link" href="{{ route('cotizaciones.index') }}">🧾 Mis Cotizaciones</a>

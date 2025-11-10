@@ -92,8 +92,8 @@ class PagoController extends Controller
             'fecha_pago' => 'required|date',
             'monto_pagado' => 'required|numeric|min:0.01',
             'metodo_pago' => 'nullable|string|max:50',
-            'referencia' => 'nullable|string|max:100',
-            'voucher' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:4048', // hasta 2MB
+            'referencia' => 'nullable|string|max:100|unique:pagos,referencia', // ✅ Validación de unicidad
+            'voucher' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:4048',
             'observacion' => 'nullable|string',
         ]);
 
@@ -114,15 +114,14 @@ class PagoController extends Controller
 
         Pago::create(array_merge($validated, ['voucher' => $voucherPath]));
 
-        // En PagoController@store, después de Pago::create(...)
+        // Registrar en tesorería
         \App\Http\Controllers\TesoreriaController::registrarIngresoVenta(
             ventaId: $cronograma->venta_id,
-            cajaId: $request->caja_id, // ¡Asegúrese de enviar caja_id desde el formulario de cobro!
+            cajaId: $request->caja_id,
             monto: $validated['monto_pagado'],
             fecha: $validated['fecha_pago'],
             referencia: $validated['referencia'] ?? null
         );
-
 
         // Actualizar estado del cronograma
         $nuevoPagado = $pagadoActual + $validated['monto_pagado'];
@@ -130,12 +129,13 @@ class PagoController extends Controller
             $cronograma->estado = 'pagado';
             $cronograma->save();
         }
-        $venta = $cronograma->venta; // ← Obtener la venta desde el cronograma
 
+        $venta = $cronograma->venta;
         if ($venta && method_exists($venta, 'isFinalizada') && $venta->isFinalizada()) {
             $venta->estado = 'finalizado';
             $venta->save();
         }
+
         return back()->with('success', 'Pago registrado correctamente.');
     }
 }

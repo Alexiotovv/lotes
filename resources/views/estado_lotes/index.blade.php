@@ -27,11 +27,11 @@
                         </td>
                         <td>
                             <a href="{{ route('estado_lotes.edit', $estado) }}" class="btn btn-sm btn-warning">Editar</a>
-                            <form action="{{ route('estado_lotes.destroy', $estado) }}" method="POST" class="d-inline">
+                            {{-- <form action="{{ route('estado_lotes.destroy', $estado) }}" method="POST" class="d-inline">
                                 @csrf
                                 @method('DELETE')
                                 <button class="btn btn-sm btn-danger" onclick="return confirm('¿Eliminar este estado?')">Eliminar</button>
-                            </form>
+                            </form> --}}
                         </td>
                     </tr>
                 @endforeach

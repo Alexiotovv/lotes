@@ -47,8 +47,8 @@ class CotizacionController extends Controller
     {
         $clientes = Cliente::all();
         $metodos = MetodoPago::all();
-        $lotes = Lote::where('estado_lote_id', 1)->get();
-        $tasas = Tasa::all();
+        $lotes = Lote::where('estado_lote_id', [1, 2])->get();
+        $tasas = Tasa::orderBy('monto')->get();
         return view('cotizaciones.create', compact('clientes', 'metodos', 'lotes','tasas'));
     }
 

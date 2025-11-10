@@ -9,14 +9,16 @@ use Database\Seeders\UserSeeder;
 use Database\Seeders\EstadoLoteSeeder;
 use Database\Seeders\ClienteSeeder;
 use Database\Seeders\MetodoPagoSeeder;
+use Database\Seeders\TasaSeeder;
+
 class DatabaseSeeder extends Seeder
 {
-
     public function run(): void
     {
         $this->call([UserSeeder::class,]);
         $this->call([EstadoLoteSeeder::class,]);
         $this->call([clienteSeeder::class,]);
         $this->call([MetodoPagoSeeder::class,]);
+        $this->call([TasaSeeder::class,]);
     }
 }

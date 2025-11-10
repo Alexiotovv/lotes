@@ -15,10 +15,11 @@ class Reserva extends Model
         'monto',
         'fecha_reserva',
         'observaciones',
+        'voucher',
     ];
 
     protected $casts = [
-        // 'fecha_reserva' => 'date',
+        'fecha_reserva' => 'date',
         'monto' => 'decimal:2',
     ];
 

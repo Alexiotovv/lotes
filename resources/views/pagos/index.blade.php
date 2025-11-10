@@ -163,8 +163,11 @@
               <tbody></tbody>
             </table>
           </div>
-          <button class="btn btn-outline-primary" onclick="exportarExcel()">📤 Exportar Excel</button>
-          <button class="btn btn-outline-secondary" onclick="window.print()">🖨️ Imprimir</button>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-sm btn-secondary" data-bs-dismiss="modal">
+                Cerrar
+            </button>
+          </div>
         </div>
       </div>
     </div>
@@ -340,276 +343,253 @@
 <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
 
 <script>
-// function verPagos(venta_id) {
-//     fetch(`/pagos/${venta_id}/detalle`)
-//         .then(r => r.json())
-//         .then(pagos => {
-//             const tbody = document.querySelector('#tablaDetallePagos tbody');
-//             tbody.innerHTML = '';
-//             pagos.forEach((p, i) => {
-//                 const voucherHtml = p.voucher 
-//                     ? `<a href="/storage/${p.voucher}" target="_blank" class="btn btn-sm btn-outline-primary">🖼️ Ver</a>`
-//                     : '—';
-                
-//                 // Mostrar número de cuota o guion si no existe
-//                 const nroCuota = p.nro_cuota ? `#${p.nro_cuota}` : '—';
-                
-//                 tbody.innerHTML += `
-//                     <tr>
-//                         <td>${i + 1}</td>
-//                         <td>${nroCuota}</td> <!-- ← Nueva columna -->
-//                         <td>${p.fecha_pago}</td>
-//                         <td>S/ ${parseFloat(p.monto_pagado).toFixed(2)}</td>
-//                         <td>${p.metodo_pago ?? '-'}</td>
-//                         <td>${p.referencia ?? '-'}</td>
-//                         <td>${voucherHtml}</td>
-//                     </tr>
-//                 `;
-//             });
-//             new bootstrap.Modal(document.getElementById('modalPagos')).show();
-//         });
-// }
-function verPagos(venta_id) {
-    fetch(`/pagos/${venta_id}/detalle`)
-        .then(r => r.json())
-        .then(pagos => {
-            const tbody = document.querySelector('#tablaDetallePagos tbody');
-            tbody.innerHTML = '';
-            pagos.forEach((p, i) => {
-                // ✅ Botón para ver imagen en modal
-                const voucherHtml = p.voucher 
-                    ? `<button type="button" class="btn btn-sm btn-outline-primary" onclick="verImagenVoucher('/storage/${p.voucher}')">🖼️ Ver</button>`
-                    : '—';
-                
-                // Mostrar número de cuota o guion si no existe
-                const nroCuota = p.nro_cuota ? `#${p.nro_cuota}` : '—';
-                
-                tbody.innerHTML += `
-                    <tr>
-                        <td>${i + 1}</td>
-                        <td>${nroCuota}</td> <!-- ← Nueva columna -->
-                        <td>${p.fecha_pago}</td>
-                        <td>S/ ${parseFloat(p.monto_pagado).toFixed(2)}</td>
-                        <td>${p.metodo_pago ?? '-'}</td>
-                        <td>${p.referencia ?? '-'}</td>
-                        <td>${voucherHtml}</td>
-                    </tr>
-                `;
+
+    function verPagos(venta_id) {
+        fetch(`/pagos/${venta_id}/detalle`)
+            .then(r => r.json())
+            .then(pagos => {
+                const tbody = document.querySelector('#tablaDetallePagos tbody');
+                tbody.innerHTML = '';
+                pagos.forEach((p, i) => {
+                    // ✅ Botón para ver imagen en modal
+                    const voucherHtml = p.voucher 
+                        ? `<button type="button" class="btn btn-sm btn-outline-primary" onclick="verImagenVoucher('/storage/${p.voucher}')">🖼️ Ver</button>`
+                        : '—';
+                    
+                    // Mostrar número de cuota o guion si no existe
+                    const nroCuota = p.nro_cuota ? `#${p.nro_cuota}` : '—';
+                    
+                    tbody.innerHTML += `
+                        <tr>
+                            <td>${i + 1}</td>
+                            <td>${nroCuota}</td> <!-- ← Nueva columna -->
+                            <td>${p.fecha_pago}</td>
+                            <td>S/ ${parseFloat(p.monto_pagado).toFixed(2)}</td>
+                            <td>${p.metodo_pago ?? '-'}</td>
+                            <td>${p.referencia ?? '-'}</td>
+                            <td>${voucherHtml}</td>
+                        </tr>
+                    `;
+                });
+                new bootstrap.Modal(document.getElementById('modalPagos')).show();
             });
-            new bootstrap.Modal(document.getElementById('modalPagos')).show();
-        });
-}
-
-// ✅ Función para ver imagen del voucher en modal
-function verImagenVoucher(src) {
-    const img = document.getElementById('imagenVoucher');
-    img.src = src;
-    img.style.transform = 'scale(1)'; // Resetear zoom
-    img.style.cursor = 'zoom-in';
-
-    new bootstrap.Modal(document.getElementById('modalImagenVoucher')).show();
-}
-
-// Hacer doble clic o clic en la imagen para alternar zoom
-document.getElementById('imagenVoucher').addEventListener('click', function() {
-    if (this.style.transform === 'scale(1.5)') {
-        this.style.transform = 'scale(1)';
-        this.style.cursor = 'zoom-in';
-    } else {
-        this.style.transform = 'scale(1.5)';
-        this.style.cursor = 'zoom-out';
     }
-});
 
-function modalCobrar(venta_id) {
-    document.getElementById('venta_id').value = venta_id;
-    document.getElementById('listaCuotas').innerHTML = '<div class="text-center"><div class="spinner-border spinner-border-sm"></div> Cargando...</div>';
-    
-    fetch(`/pagos/${venta_id}/cobrar`)
-        .then(r => r.json())
-        .then(cuotas => {
-            const contenedor = document.getElementById('listaCuotas');
-            if (cuotas.length === 0) {
-                contenedor.innerHTML = '<div class="alert alert-info">No hay cuotas registradas.</div>';
-                return;
-            }
-            
-            let html = '';
-            cuotas.forEach(c => {
-                // Determinar clase y texto del badge
-                let badgeHtml = '';
-                let isDisabled = false;
-                let cursorStyle = 'pointer';
-                
-                if (c.estado === 'pagado') {
-                    badgeHtml = '<span class="badge bg-success ms-2">PAGADO</span>';
-                    isDisabled = true;
-                    cursorStyle = 'not-allowed';
-                } else if (c.estado === 'vencido') {
-                    badgeHtml = '<span class="badge bg-danger ms-2">VENCIDA</span>';
-                } else {
-                    badgeHtml = '<span class="badge bg-warning ms-2">PENDIENTE</span>';
+    // ✅ Función para ver imagen del voucher en modal
+    function verImagenVoucher(src) {
+        const img = document.getElementById('imagenVoucher');
+        img.src = src;
+        img.style.transform = 'scale(1)'; // Resetear zoom
+        img.style.cursor = 'zoom-in';
+
+        new bootstrap.Modal(document.getElementById('modalImagenVoucher')).show();
+    }
+
+    // Hacer doble clic o clic en la imagen para alternar zoom
+    document.getElementById('imagenVoucher').addEventListener('click', function() {
+        if (this.style.transform === 'scale(1.5)') {
+            this.style.transform = 'scale(1)';
+            this.style.cursor = 'zoom-in';
+        } else {
+            this.style.transform = 'scale(1.5)';
+            this.style.cursor = 'zoom-out';
+        }
+    });
+
+    function modalCobrar(venta_id) {
+        document.getElementById('venta_id').value = venta_id;
+        document.getElementById('listaCuotas').innerHTML = '<div class="text-center"><div class="spinner-border spinner-border-sm"></div> Cargando...</div>';
+        
+        fetch(`/pagos/${venta_id}/cobrar`)
+            .then(r => r.json())
+            .then(cuotas => {
+                const contenedor = document.getElementById('listaCuotas');
+                if (cuotas.length === 0) {
+                    contenedor.innerHTML = '<div class="alert alert-info">No hay cuotas registradas.</div>';
+                    return;
                 }
-
-                html += `
-                    <div class="form-check mb-2 p-2 border rounded" style="cursor: ${cursorStyle}; opacity: ${isDisabled ? '0.7' : '1'};">
-                        <input class="form-check-input cuota-radio" type="radio" name="cronograma_id" value="${c.id}" 
-                            ${isDisabled ? 'disabled' : ''}
-                            data-total="${c.cuota_total}" data-pendiente="${c.pendiente}">
-                        <label class="form-check-label" ${isDisabled ? 'style="color: #6c757d;"' : ''}>
-                            Cuota #${c.nro_cuota} - ${c.fecha_pago} 
-                            (S/ ${parseFloat(c.cuota_total).toFixed(2)}) ${badgeHtml}
-                            <br><small class="text-muted">
-                                Pagado: S/ ${parseFloat(c.pagado).toFixed(2)} | 
-                                Pendiente: S/ ${parseFloat(c.pendiente).toFixed(2)}
-                            </small>
-                        </label>
-                    </div>
-                `;
-            });
-            contenedor.innerHTML = html;
-            
-            // Evento al seleccionar una cuota (solo para no deshabilitadas)
-            document.querySelectorAll('.cuota-radio:not(:disabled)').forEach(radio => {
-                radio.addEventListener('change', function() {
-                    if (this.checked) {
-                        const total = this.dataset.total;
-                        const pendiente = this.dataset.pendiente;
-                        document.getElementById('cuotaTotal').value = `S/ ${parseFloat(total).toFixed(2)}`;
-                        document.getElementById('saldoPendiente').value = `S/ ${parseFloat(pendiente).toFixed(2)}`;
-                        document.querySelector('input[name="monto_pagado"]').value = pendiente;
-                        document.getElementById('detalleCuota').style.display = 'block';
-                        document.getElementById('errorCuota').style.display = 'none';
+                
+                let html = '';
+                cuotas.forEach(c => {
+                    // Determinar clase y texto del badge
+                    let badgeHtml = '';
+                    let isDisabled = false;
+                    let cursorStyle = 'pointer';
+                    
+                    if (c.estado === 'pagado') {
+                        badgeHtml = '<span class="badge bg-success ms-2">PAGADO</span>';
+                        isDisabled = true;
+                        cursorStyle = 'not-allowed';
+                    } else if (c.estado === 'vencido') {
+                        badgeHtml = '<span class="badge bg-danger ms-2">VENCIDA</span>';
+                    } else {
+                        badgeHtml = '<span class="badge bg-warning ms-2">PENDIENTE</span>';
                     }
+
+                    html += `
+                        <div class="form-check mb-2 p-2 border rounded" style="cursor: ${cursorStyle}; opacity: ${isDisabled ? '0.7' : '1'};">
+                            <input class="form-check-input cuota-radio" type="radio" name="cronograma_id" value="${c.id}" 
+                                ${isDisabled ? 'disabled' : ''}
+                                data-total="${c.cuota_total}" data-pendiente="${c.pendiente}">
+                            <label class="form-check-label" ${isDisabled ? 'style="color: #6c757d;"' : ''}>
+                                Cuota #${c.nro_cuota} - ${c.fecha_pago} 
+                                (S/ ${parseFloat(c.cuota_total).toFixed(2)}) ${badgeHtml}
+                                <br><small class="text-muted">
+                                    Pagado: S/ ${parseFloat(c.pagado).toFixed(2)} | 
+                                    Pendiente: S/ ${parseFloat(c.pendiente).toFixed(2)}
+                                </small>
+                            </label>
+                        </div>
+                    `;
+                });
+                contenedor.innerHTML = html;
+                
+                // Evento al seleccionar una cuota (solo para no deshabilitadas)
+                document.querySelectorAll('.cuota-radio:not(:disabled)').forEach(radio => {
+                    radio.addEventListener('change', function() {
+                        if (this.checked) {
+                            const total = this.dataset.total;
+                            const pendiente = this.dataset.pendiente;
+                            document.getElementById('cuotaTotal').value = `S/ ${parseFloat(total).toFixed(2)}`;
+                            document.getElementById('saldoPendiente').value = `S/ ${parseFloat(pendiente).toFixed(2)}`;
+                            document.querySelector('input[name="monto_pagado"]').value = pendiente;
+                            document.getElementById('detalleCuota').style.display = 'block';
+                            document.getElementById('errorCuota').style.display = 'none';
+                        }
+                    });
                 });
             });
+        
+        new bootstrap.Modal(document.getElementById('modalCobrar')).show();
+    }
+    // Validación en tiempo real del monto
+    document.querySelector('input[name="monto_pagado"]')?.addEventListener('input', function() {
+        const pendiente = parseFloat(document.getElementById('saldoPendiente')?.value.replace('S/ ', '') || 0);
+        const monto = parseFloat(this.value || 0);
+        const error = document.getElementById('errorMonto');
+        
+        if (monto > pendiente) {
+            error.textContent = `El monto no puede exceder el saldo pendiente de S/ ${pendiente.toFixed(2)}`;
+            error.style.display = 'block';
+        } else {
+            error.style.display = 'none';
+        }
+    });
+
+    // Validación del formulario
+    document.getElementById('formCobro')?.addEventListener('submit', function(e) {
+        const cronogramaId = document.querySelector('input[name="cronograma_id"]:checked');
+        if (!cronogramaId) {
+            e.preventDefault();
+            document.getElementById('errorCuota').style.display = 'block';
+        }
+    });
+
+
+    // === Manejo de cámara y vista previa ===
+
+    // Tomar foto con cámara
+    document.getElementById('btnCamara').addEventListener('click', function() {
+        document.getElementById('voucherInput').click();
+    });
+
+    // Cargar foto desde explorador
+    document.getElementById('btnCargarFoto').addEventListener('click', function() {
+        document.getElementById('voucherExploradorInput').click();
+    });
+
+    // Procesar imagen desde cámara
+    document.getElementById('voucherInput').addEventListener('change', async function(e) {
+        const file = e.target.files[0];
+        if (!file) return;
+        await procesarImagen(file);
+    });
+
+    // Procesar imagen desde explorador
+    document.getElementById('voucherExploradorInput').addEventListener('change', async function(e) {
+        const file = e.target.files[0];
+        if (!file) return;
+        await procesarImagen(file);
+    });
+
+    // Función para procesar y comprimir imagen
+    async function procesarImagen(file) {
+        // Mostrar vista previa temporal
+        const reader = new FileReader();
+        reader.onload = function(event) {
+            document.getElementById('imgPrevia').src = event.target.result;
+            document.getElementById('vistaPrevia').style.display = 'block';
+        };
+        reader.readAsDataURL(file);
+
+        // === COMPRESIÓN DE IMAGEN ===
+        const compressedFile = await compressImage(file, 0.6);
+        replaceFileInput(compressedFile);
+    }
+
+    // Función para comprimir imagen con <canvas>
+    function compressImage(file, quality = 0.6) {
+        return new Promise((resolve) => {
+            const img = new Image();
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                img.src = e.target.result;
+            };
+            img.onload = () => {
+                const canvas = document.createElement('canvas');
+                const MAX_WIDTH = 1024;
+                const scale = Math.min(MAX_WIDTH / img.width, 1);
+                canvas.width = img.width * scale;
+                canvas.height = img.height * scale;
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+
+                canvas.toBlob(
+                    (blob) => {
+                        const compressed = new File([blob], file.name.replace(/\.[^.]+$/, '.jpg'), {
+                            type: 'image/jpeg',
+                            lastModified: Date.now(),
+                        });
+                        resolve(compressed);
+                    },
+                    'image/jpeg',
+                    quality
+                );
+            };
+            reader.readAsDataURL(file);
         });
-    
-    new bootstrap.Modal(document.getElementById('modalCobrar')).show();
-}
-// Validación en tiempo real del monto
-document.querySelector('input[name="monto_pagado"]')?.addEventListener('input', function() {
-    const pendiente = parseFloat(document.getElementById('saldoPendiente')?.value.replace('S/ ', '') || 0);
-    const monto = parseFloat(this.value || 0);
-    const error = document.getElementById('errorMonto');
-    
-    if (monto > pendiente) {
-        error.textContent = `El monto no puede exceder el saldo pendiente de S/ ${pendiente.toFixed(2)}`;
-        error.style.display = 'block';
-    } else {
-        error.style.display = 'none';
     }
-});
 
-// Validación del formulario
-document.getElementById('formCobro')?.addEventListener('submit', function(e) {
-    const cronogramaId = document.querySelector('input[name="cronograma_id"]:checked');
-    if (!cronogramaId) {
-        e.preventDefault();
-        document.getElementById('errorCuota').style.display = 'block';
+    // Reemplaza el archivo seleccionado por el comprimido
+    function replaceFileInput(newFile) {
+        const dataTransfer = new DataTransfer();
+        dataTransfer.items.add(newFile);
+        document.getElementById('voucherInput').files = dataTransfer.files; // ✅ Usar el input principal
     }
-});
 
-
-  // === Manejo de cámara y vista previa ===
-
-  // Tomar foto con cámara
-  document.getElementById('btnCamara').addEventListener('click', function() {
-      document.getElementById('voucherInput').click();
-  });
-
-  // Cargar foto desde explorador
-  document.getElementById('btnCargarFoto').addEventListener('click', function() {
-      document.getElementById('voucherExploradorInput').click();
-  });
-
-  // Procesar imagen desde cámara
-  document.getElementById('voucherInput').addEventListener('change', async function(e) {
-      const file = e.target.files[0];
-      if (!file) return;
-      await procesarImagen(file);
-  });
-
-  // Procesar imagen desde explorador
-  document.getElementById('voucherExploradorInput').addEventListener('change', async function(e) {
-      const file = e.target.files[0];
-      if (!file) return;
-      await procesarImagen(file);
-  });
-
-  // Función para procesar y comprimir imagen
-  async function procesarImagen(file) {
-      // Mostrar vista previa temporal
-      const reader = new FileReader();
-      reader.onload = function(event) {
-          document.getElementById('imgPrevia').src = event.target.result;
-          document.getElementById('vistaPrevia').style.display = 'block';
-      };
-      reader.readAsDataURL(file);
-
-      // === COMPRESIÓN DE IMAGEN ===
-      const compressedFile = await compressImage(file, 0.6);
-      replaceFileInput(compressedFile);
-  }
-
-  // Función para comprimir imagen con <canvas>
-  function compressImage(file, quality = 0.6) {
-      return new Promise((resolve) => {
-          const img = new Image();
-          const reader = new FileReader();
-          reader.onload = (e) => {
-              img.src = e.target.result;
-          };
-          img.onload = () => {
-              const canvas = document.createElement('canvas');
-              const MAX_WIDTH = 1024;
-              const scale = Math.min(MAX_WIDTH / img.width, 1);
-              canvas.width = img.width * scale;
-              canvas.height = img.height * scale;
-              const ctx = canvas.getContext('2d');
-              ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-
-              canvas.toBlob(
-                  (blob) => {
-                      const compressed = new File([blob], file.name.replace(/\.[^.]+$/, '.jpg'), {
-                          type: 'image/jpeg',
-                          lastModified: Date.now(),
-                      });
-                      resolve(compressed);
-                  },
-                  'image/jpeg',
-                  quality
-              );
-          };
-          reader.readAsDataURL(file);
-      });
-  }
-
-  // Reemplaza el archivo seleccionado por el comprimido
-  function replaceFileInput(newFile) {
-      const dataTransfer = new DataTransfer();
-      dataTransfer.items.add(newFile);
-      document.getElementById('voucherInput').files = dataTransfer.files; // ✅ Usar el input principal
-  }
-
-  // Eliminar foto
-  document.getElementById('btnEliminarFoto').addEventListener('click', function() {
-      document.getElementById('voucherInput').value = '';
-      document.getElementById('voucherExploradorInput').value = '';
-      document.getElementById('vistaPrevia').style.display = 'none';
-  });
+    // Eliminar foto
+    document.getElementById('btnEliminarFoto').addEventListener('click', function() {
+        document.getElementById('voucherInput').value = '';
+        document.getElementById('voucherExploradorInput').value = '';
+        document.getElementById('vistaPrevia').style.display = 'none';
+    });
 
 
 
+    document.getElementById('btnEliminarFoto').addEventListener('click', function() {
+        document.getElementById('voucherInput').value = '';
+        document.getElementById('vistaPrevia').style.display = 'none';
+    });
 
+    // Si hay cajas activas, asegurar que la primera esté seleccionada al cargar
+    $(document).ready(function() {
+        const $select = $('select[name="caja_id"]');
+        const $firstOption = $select.find('option[value]:not(:first)').first();
 
-
-  document.getElementById('btnEliminarFoto').addEventListener('click', function() {
-      document.getElementById('voucherInput').value = '';
-      document.getElementById('vistaPrevia').style.display = 'none';
-  });
-
-
+        if ($firstOption.length > 0 && !$select.val()) {
+            $select.val($firstOption.val()).trigger('change');
+        }
+    });
 
 
 </script>

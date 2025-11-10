@@ -74,13 +74,12 @@
         <div class="col-md-3">
             <label>Tasa de Interés (TEA)</label>
             <select id="tasaSelect" class="form-select">
-                <option value="0.12">12.00%</option>
-                <option value="0.15">15.00%</option>
-                <option value="0.18">18.00%</option>
-                <option value="0.00">0% (Sin interés)</option>
+                @foreach($tasas as $tasa)
+                    <option value="{{ $tasa->monto }}">{{ number_format($tasa->monto * 100, 2) }}% - {{ $tasa->nombre }}</option>
+                @endforeach
             </select>
             <!-- Campo oculto para enviar al backend -->
-            <input type="hidden" name="tasa_interes" id="tasaInteresInput" value="0.12">
+            <input type="hidden" name="tasa_interes" id="tasaInteresInput" value="{{ $tasas->first()?->monto ?? 0.00 }}">
         </div>
         
         <!-- Campos derivados del lote -->
@@ -158,9 +157,14 @@
             $('#tasaSelect').on('change', function() {
                 const tea = $(this).val(); // "0.12", "0.15", etc.
                 $('#tasaInteresInput').val(tea); // Asigna al hidden
-                $('#tasaMostrada').text((parseFloat(tea) * 100).toFixed(2) + '%');
+                
+                // Obtener el valor por defecto del select (el primer option)
+                const tasaDefault = $('#tasaSelect').val();
+                $('#tasaMostrada').text((parseFloat(tasaDefault) * 100).toFixed(2) + '%');
+                
                 recalcularCuota();
             });
+
 
             // Mostrar precio del lote
             $('#loteSelect').on('change', function() {
