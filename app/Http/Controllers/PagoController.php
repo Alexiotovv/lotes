@@ -15,8 +15,11 @@ class PagoController extends Controller
             $q->where('estado', 'pendiente')->orWhere('estado', 'vencido');
         }]);
 
-        // Búsqueda por cliente o lote
+        // Búsqueda por cliente, lote, ID de venta o fecha de venta (created_at)
         if ($search = $request->input('search')) {
+            // ✅ Agregue esta línea para ver qué valor tiene $search
+            \Log::info('Valor de search:', ['search' => $search]);
+
             $query->where(function ($q) use ($search) {
                 // Buscar por cliente: nombre o dni_ruc
                 $q->whereHas('cliente', function ($q2) use ($search) {
@@ -28,12 +31,14 @@ class PagoController extends Controller
                     $q2->where('codigo', 'LIKE', "%$search%")
                     ->orWhere('nombre', 'LIKE', "%$search%");
                 })
+                // ✅ Buscar por fecha de venta exacta (created_at) en formato YYYY-MM-DD
+                ->orWhereRaw("DATE(created_at) like ?", ["%$search%"])
                 // Buscar por ID de venta
                 ->orWhere('id', 'LIKE', "%$search%");
             });
         }
 
-        // Paginar ventas (no cronogramas)
+        // Paginar ventas
         $ventas = $query->latest()->paginate(15)->appends($request->query());
 
         // Cajas activas

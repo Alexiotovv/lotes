@@ -32,6 +32,7 @@
         <thead>
             <tr>
                 <th>ID</th>
+                <th>Codigo Lote</th>
                 <th>Cliente</th>
                 <th>Fecha Venta</th>
                 <th>Próximo Pago</th>
@@ -46,8 +47,9 @@
             @foreach($creditos as $credito)
             <tr>
                 <td>{{ $credito->id }}</td>
+                <td>{{ $credito->lote->codigo }} {{$credito->lote->nombre}}</td>
                 <td>{{ $credito->cliente->nombre_cliente }}</td>
-                <td>{{ $credito->created_at->format('d/m/Y') }}</td>
+                <td>{{ $credito->created_at }}</td>
                 <td>
                     @if($credito->proxima_cuota_fecha)
                         @if($credito->estado_proxima == 'vencido')

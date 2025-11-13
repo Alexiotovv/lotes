@@ -28,5 +28,11 @@ class Cronograma extends Model
     {
         return $this->hasMany(Pago::class);
     }
-
+    protected $casts = [
+            'fecha_pago' => 'date', // o 'datetime' si guarda hora
+            'saldo' => 'decimal:2',
+            'interes' => 'decimal:2',
+            'amortizacion' => 'decimal:2',
+            'cuota' => 'decimal:2',
+        ];
 }

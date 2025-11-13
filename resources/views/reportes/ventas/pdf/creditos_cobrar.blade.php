@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cuotas del Mes - {{$empresa->nombre}}</title>
+    <title>Créditos por Cobrar</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -58,24 +58,6 @@
         .text-center {
             text-align: center;
         }
-        .badge {
-            padding: 4px 8px;
-            border-radius: 4px;
-            font-size: 11px;
-            font-weight: bold;
-        }
-        .badge-success {
-            background-color: #d4edda;
-            color: #155724;
-        }
-        .badge-danger {
-            background-color: #f8d7da;
-            color: #721c24;
-        }
-        .badge-warning {
-            background-color: #fff3cd;
-            color: #856404;
-        }
         .footer {
             margin-top: 30px;
             font-size: 12px;
@@ -91,60 +73,70 @@
             RUC: {{ $empresa->ruc ?? 'N/A' }}<br>
             Dirección: {{ $empresa->direccion ?? 'N/A' }}
         </div>
-        <div class="report-title">CUOTAS DEL MES</div>
+        <div class="report-title">LISTA DE CRÉDITOS POR COBRAR</div>
         <div class="report-subtitle">
             Fecha de emisión: {{ now()->format('d/m/Y H:i') }}<br>
-            Mes: {{ \DateTime::createFromFormat('!m', $mes)->format('F') }} de {{ $anio }}
+            @if($fecha_desde && $fecha_hasta)
+                Rango de fechas: {{ \Carbon\Carbon::parse($fecha_desde)->format('d/m/Y') }} - {{ \Carbon\Carbon::parse($fecha_hasta)->format('d/m/Y') }}
+            @endif
         </div>
     </div>
 
     <div class="summary">
-        <div><strong>Total de Cuotas:</strong> {{ $cronogramas->count() }}</div>
-        <div><strong>Monto Total Programado:</strong> S/ {{ number_format($cronogramas->sum('cuota'), 2) }}</div>
+        <div><strong>Total de Créditos:</strong> {{ $total_creditos }}</div>
+        <div><strong>Monto Total por Cobrar:</strong> S/ {{ number_format($monto_total, 2) }}</div>
     </div>
 
     <table>
         <thead>
             <tr>
-                <th>ID Cuota</th>
+                <th>ID</th>
                 <th>Cliente</th>
                 <th>DNI/RUC</th>
                 <th>Lote</th>
-                <th>N° Cuota</th>
-                <th>Fecha Pago</th>
-                <th>Cuota (S/)</th>
+                <th>Fecha Venta</th>
+                <th>Cuota Mensual (S/)</th>
+                <th>Total Deuda (S/)</th>
+                <th>Próximo Pago</th>
                 <th>Estado</th>
             </tr>
         </thead>
         <tbody>
-            @forelse($cronogramas as $crono)
+            @forelse($ventas as $venta)
                 <tr>
-                    <td>{{ $crono->id }}</td>
-                    <td>{{ $crono->venta->cliente->nombre_cliente ?? 'N/A' }}</td>
-                    <td>{{ $crono->venta->cliente->dni_ruc ?? 'N/A' }}</td>
-                    <td>{{ $crono->venta->lote->codigo ?? 'N/A' }} - {{ $crono->venta->lote->nombre ?? 'N/A' }}</td>
-                    <td>{{ $crono->nro_cuota }}</td>
-                    <td>{{ $crono->fecha_pago->format('d/m/Y') }}</td>
-                    <td class="text-right">{{ number_format($crono->cuota, 2) }}</td>
+                    <td>{{ $venta->id }}</td>
+                    <td>{{ $venta->cliente->nombre_cliente }}</td>
+                    <td>{{ $venta->cliente->dni_ruc }}</td>
+                    <td>{{ $venta->lote->codigo }} - {{ $venta->lote->nombre }}</td>
+                    <td>{{ $venta->created_at->format('d/m/Y') }}</td>
+                    <td class="text-right">{{ number_format($venta->cuota, 2) }}</td>
+                    <td class="text-right">{{ number_format($venta->monto_financiar - $venta->cronogramas->where('estado', 'pagado')->sum('cuota'), 2) }}</td>
                     <td>
-                        @switch($crono->estado)
-                            @case('pagado')
-                                <span class="badge badge-success">PAGADO</span>
+                        @if($venta->cronogramas->where('estado', 'pendiente')->first())
+                            <span class="badge {{ $venta->cronogramas->where('estado', 'pendiente')->first()->fecha_pago < today() ? 'bg-danger' : 'bg-success' }}">
+                                {{ $venta->cronogramas->where('estado', 'pendiente')->first()->fecha_pago }}
+                            </span>
+                        @else
+                            <span class="badge bg-secondary">FINALIZADO</span>
+                        @endif
+                    </td>
+                    <td>
+                        @switch($venta->estado)
+                            @case('finalizado')
+                            @case('contado')
+                                <span class="badge bg-secondary text-white">{{ $venta->estado }}</span>
                                 @break
-                            @case('vencido')
-                                <span class="badge badge-danger">VENCIDO</span>
-                                @break
-                            @case('pendiente')
-                                <span class="badge badge-warning">PENDIENTE</span>
+                            @case('vigente')
+                                <span class="badge bg-success text-white">{{ $venta->estado }}</span>
                                 @break
                             @default
-                                <span class="badge" style="background-color: #e2e3e5; color: #383d41;">{{ strtoupper($crono->estado) }}</span>
+                                <span class="badge bg-warning text-dark">{{ $venta->estado }}</span>
                         @endswitch
                     </td>
                 </tr>
             @empty
                 <tr>
-                    <td colspan="8" class="text-center">No se encontraron cuotas programadas para este mes.</td>
+                    <td colspan="9" class="text-center">No se encontraron créditos por cobrar.</td>
                 </tr>
             @endforelse
         </tbody>
@@ -155,7 +147,7 @@
         Impreso por: {{ auth()->user()->name ?? 'Sistema' }} | Fecha: {{ now()->format('d/m/Y H:i') }}
     </div>
 
-    <!-- Botón para imprimir (no se imprime) -->
+        <!-- Botón para imprimir (no se imprime) -->
     <button 
         onclick="window.print()" 
         style="
@@ -165,16 +157,16 @@
             z-index: 1000; 
             display: block;
             padding: 0.5rem 1rem;
-            font-size: 0.875rem;
+            font-size: 0.875rem; /* Tamaño similar a btn-sm */
             font-weight: 500;
-            color: #212529;
-            background-color: rgba(248, 249, 250, 0.9);
-            border: 1px solid rgba(0, 0, 0, 0.1);
-            border-radius: 0.375rem;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            color: #212529; /* Color de texto oscuro */
+            background-color: rgba(248, 249, 250, 0.9); /* Fondo claro casi blanco con leve transparencia */
+            border: 1px solid rgba(0, 0, 0, 0.1); /* Borde muy sutil */
+            border-radius: 0.375rem; /* Bordes ligeramente redondeados */
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Sombra suave */
             cursor: pointer;
-            transition: all 0.2s ease-in-out;
-            backdrop-filter: blur(4px);
+            transition: all 0.2s ease-in-out; /* Transición suave para hover */
+            backdrop-filter: blur(4px); /* Efecto de vidrio (opcional, moderno) */
         "
         onPrint="this.style.display='none'"
     >
@@ -189,13 +181,24 @@
 
         // Ocultar el botón al imprimir (antes de que se imprima)
         window.addEventListener('beforeprint', () => {
-            document.querySelector('button[onclick="window.print()"]').style.display = 'none';
+            document.querySelector('button[onclick=\"window.print()\"]').style.display = 'none';
         });
 
         // Mostrar el botón después de cancelar la impresión (después de que se cierra el diálogo)
         window.addEventListener('afterprint', () => {
-            document.querySelector('button[onclick="window.print()"]').style.display = 'block';
+            document.querySelector('button[onclick=\"window.print()\"]').style.display = 'block';
         });
     </script>
 </body>
 </html>
+
+</body>
+ <script>
+        // Imprime automáticamente al abrir
+        window.addEventListener('load', () => {
+            setTimeout(() => window.print(), 700);
+        });
+    </script>
+</html>
+
+

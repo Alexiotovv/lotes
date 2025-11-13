@@ -19,6 +19,7 @@ return new class extends Migration
             $table->string('metodo_pago', 50)->nullable();
             $table->string('referencia', 100)->nullable(); // Nº operación, recibo, etc.
             $table->text('observacion')->nullable();
+            $table->string('voucher')->nullable();
             $table->timestamps();
         });
     }

@@ -13,7 +13,7 @@
             type="text" 
             name="search" 
             class="form-control" 
-            placeholder="Buscar por: ID venta, nombre cliente, código/nombre lote o fecha (YYYY-MM-DD)"
+            placeholder="Buscar por: ID venta, nombre cliente, código/nombre lote o fecha registro (YYYY-MM-DD)"
             value="{{ request('search') }}"
         >
         <button class="btn btn-outline-secondary" type="submit">🔍 Buscar</button>
@@ -38,6 +38,7 @@
                 <th>Cod.Lote</th>
                 <th>Tipo de Venta</th>
                 <th>Fecha Pago</th>
+                <th>Fecha Registro</th>
                 <th>Inicial (S/)</th>
                 <th>Interés (%)</th>
                 <th>Cuota (S/)</th>
@@ -55,6 +56,7 @@
                 <td>{{$v->lote->codigo}}</td>
                 <td>{{ $v->metodopago->nombre }}</td>
                 <td>{{ $v->fecha_pago }}</td>
+                <td>{{ $v->created_at }}</td>
                 <td>{{ number_format($v->inicial, 2) }}</td>
                 <td>{{ $v->tasa_interes * 100 }}</td>
                 <td>S/ {{ number_format($v->cuota, 2) }}</td>
@@ -73,6 +75,7 @@
                     @endswitch
                 </td>
                 <td>
+                    
                     @if(!$v->cronograma_generado)
                         <a href="{{ route('ventas.edit', $v) }}" class="btn btn-outline-primary btn-sm">✏️ Editar</a>
                     @endif
@@ -104,6 +107,22 @@
                             @method('DELETE')
                             <button class="btn btn-light btn-sm">❌</button>
                         </form>
+
+                        @if($v->contratos()->where('activo', true)->exists())
+                            <button type="button" class="btn btn-sm btn-outline-primary" onclick="mostrarContratos({{ $v->id }})">
+                                📄 Contrato
+                            </button>
+                        @else
+                            <form action="{{ route('ventas.contrato.generar', $v) }}" method="POST" onsubmit="return confirm('¿Generar contrato?')">
+                                @csrf
+                                <button type="submit" class="btn btn-sm btn-outline-success">
+                                    🖋️ Generar Contrato
+                                </button>
+                            </form>
+                        @endif
+
+
+
                     @endif
                 </td>
             </tr>
@@ -179,11 +198,94 @@
     </div>
 </div>
 
-
+<!-- Modal para mostrar contratos -->
+<div class="modal fade" id="modalContratos" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Contratos de la Venta</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div id="listaContratos"></div>
+            </div>
+        </div>
+    </div>
+</div>
 
 @endsection
 
 @section('scripts')
+    <script>
+        // Función para anular contrato (opcional)
+        function anularContrato(contratoId) {
+            if (!confirm('¿Está seguro de anular este contrato?')) {
+                return;
+            }
+
+            fetch(`/contratos/${contratoId}`, {
+                method: 'DELETE',
+                headers: {
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                }
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Error al anular el contrato');
+                }
+                return response.json();
+            })
+            .then(data => {
+                // Recargar la lista de contratos
+                mostrarContratos(data.venta_id);
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Error al anular el contrato.');
+            });
+        }
+
+        // Función para mostrar contratos
+        function mostrarContratos(ventaId) {
+            fetch(`/contratos?venta_id=${ventaId}`)
+                .then(response => response.json())
+                .then(contratos => {
+                    const contenedor = document.getElementById('listaContratos');
+                    contenedor.innerHTML = '';
+
+                    if (contratos.length === 0) {
+                        contenedor.innerHTML = '<div class="alert alert-info">No se han generado contratos para esta venta.</div>';
+                        return;
+                    }
+
+                    let html = '<div class="table-responsive"><table class="table table-bordered"><thead class="table-dark"><tr><th>ID</th><th>Fecha</th><th>Estado</th><th>Acciones</th></tr></thead><tbody>';
+                    contratos.forEach(c => {
+                        const estado = c.activo ? '<span class="badge bg-success">Activo</span>' : '<span class="badge bg-danger">Anulado</span>';
+                        html += `
+                            <tr>
+                                <td>${c.id}</td>
+                                <td>${new Date(c.created_at).toLocaleString()}</td>
+                                <td>${estado}</td>
+                                <td>
+                                    <a href="${c.url}" target="_blank" class="btn btn-sm btn-outline-primary">Ver</a>
+                                    ${c.activo ? `<button type="button" class="btn btn-sm btn-outline-danger" onclick="anularContrato(${c.id})">Anular</button>` : ''}
+                                </td>
+                            </tr>`;
+                    });
+                    html += '</tbody></table></div>';
+
+                    contenedor.innerHTML = html;
+
+                    // Mostrar modal
+                    const modal = new bootstrap.Modal(document.getElementById('modalContratos'));
+                    modal.show();
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Error al cargar los contratos.');
+                });
+        }
+    </script>
     <script>
         // Manejar clic en botones de cambio de estado
         $(document).on('click', '.btn-cambiar-estado', function() {

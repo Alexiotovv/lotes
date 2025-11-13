@@ -11,6 +11,8 @@ use App\Http\Controllers\ReservaController;
 use App\Http\Controllers\ConfiguracionGeneralController;
 use App\Http\Controllers\CompraController;
 use App\Http\Controllers\TasaController;
+use App\Http\Controllers\ReporteController;
+use App\Http\Controllers\ContratoController;
 // === Autenticación ===
 Route::get('/login', [LoginController::class, 'showLoginForm'])->name('login');
 Route::post('/login', [LoginController::class, 'login']);
@@ -23,6 +25,7 @@ Route::middleware(['auth'])->group(function () {
 
 // === Rutas solo para VENDEDORES y admines ===
 Route::middleware(['auth', 'vendedor'])->group(function () {
+
     //Reservas
     Route::resource('reservas', ReservaController::class)->except(['show']);
     // Route::get('/reservas/{reserva}/edit', [ReservaController::class, 'edit'])->name('reservas.edit.ajax'); // para modal
@@ -69,6 +72,12 @@ Route::middleware(['auth', 'vendedor'])->group(function () {
 
 // === Rutas solo para ADMINISTRADORES ===
 Route::middleware(['auth', 'admin'])->group(function () {
+
+    //Contratos
+    Route::get('/contratos', [ContratoController::class, 'index'])->name('contratos.index');
+    Route::get('/contratos/{contrato}', [ContratoController::class, 'ver'])->name('contratos.ver');
+    Route::delete('/contratos/{contrato}', [ContratoController::class, 'destroy'])->name('contratos.destroy');
+
 
     Route::put('/ventas/{venta}/cambiar-estado', [VentaController::class, 'cambiarEstado'])->name('ventas.cambiar-estado');
 
@@ -152,6 +161,12 @@ Route::middleware(['auth', 'admin'])->group(function () {
 
     // Reportes
     Route::prefix('reportes')->name('reportes.')->group(function () {
+        Route::get('/ventas/creditos/cliente/dni', [ReporteController::class, 'creditosClientePorDni'])->name('ventas.creditos.cliente.dni');
+        Route::get('/ventas/{venta}/detalles-credito', [ReporteController::class, 'detallesCredito'])->name('ventas.detalles.credito');
+        Route::get('/ventas/creditos-por-cobrar', [ReporteController::class, 'creditosPorCobrarPDF'])->name('ventas.pdf.creditos_por_cobrar');
+        
+        Route::get('/ventas/anios-disponibles', [ReporteController::class, 'aniosDisponibles'])->name('ventas.anios.disponibles');
+        
         Route::get('/ventas', [\App\Http\Controllers\ReporteController::class, 'ventas'])->name('ventas');
         Route::get('/ventas/creditos-cliente', [\App\Http\Controllers\ReporteController::class, 'creditosPorCliente'])->name('ventas.creditos.cliente');
         Route::get('/ventas/pdf/lista', [\App\Http\Controllers\ReporteController::class, 'listaVentasPdf'])->name('ventas.pdf.lista');

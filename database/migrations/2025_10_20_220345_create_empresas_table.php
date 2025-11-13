@@ -14,19 +14,15 @@ return new class extends Migration
             $table->string('ruc', 11)->unique();
             $table->string('direccion');
             $table->text('descripcion')->nullable();
+            $table->string('departamento',50)->nullable();
+            $table->string('provincia',50)->nullable();
+            $table->string('distrito',50)->nullable();
+            $table->string('telefono',50)->nullable();
             $table->string('logo')->nullable(); // Ruta de la imagen
             $table->timestamps();
         });
 
-        // Opcional: Insertar empresa inicial
-        DB::table('empresas')->insert([
-            'nombre' => 'Empresa Predeterminada',
-            'ruc' => '12345678901',
-            'direccion' => 'Av. Principal 123',
-            'descripcion' => 'Empresa dedicada a la venta de terrenos.',
-            'created_at' => now(),
-            'updated_at' => now(),
-        ]);
+       
     }
 
     public function down()

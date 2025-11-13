@@ -13,6 +13,7 @@ return new class extends Migration
             $table->string('nombre', 100);
             $table->string('descripcion', 255)->nullable();
             $table->boolean('activo')->default(true);
+            $table->boolean('es_credito')->default(false);
             $table->timestamps();
         });
     }

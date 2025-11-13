@@ -57,7 +57,7 @@
     </style>
 @endsection
 @section('content')
-<h4>📋 Lista de Cobros (Créditos)</h4>
+<h4>📋 Lista de Pagos</h4>
   <!-- 🔍 Barra de búsqueda -->
   <form method="GET" action="{{ route('pagos.index') }}" class="mb-4">
       <div class="row g-3">
@@ -116,7 +116,7 @@
                     <td>{{ $v->id }}</td>
                     <td>{{ $v->cliente->dni_ruc }}</td>
                     <td>{{ $v->cliente->nombre_cliente }}</td>
-                    <td>{{ $v->created_at->format('d/m/Y') }}</td>
+                    <td>{{ $v->created_at }}</td>
                     <td>
                         @if($proxPago)
                             <span class="badge bg-{{ $proxPago->fecha_pago < today() ? 'danger' : 'success' }}">

@@ -25,6 +25,8 @@ return new class extends Migration
             $table->decimal('tasa_interes', 5, 4)->default(0); // Tasa de interés (ejemplo: 0.02 = 2%)
             $table->decimal('cuota', 12, 2)->default(0);    // Monto de la cuota mensual
             $table->text('observaciones')->nullable();      //comentarios
+            $table->enum('estado', ['desistido', 'vigente', 'finalizado'])->default('vigente');
+            $table->boolean('cronograma_generado')->default(false);
             $table->timestamps();
         });
     }

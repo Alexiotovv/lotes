@@ -25,6 +25,9 @@ return new class extends Migration
             $table->decimal('lado_derecho', 8, 2)->nullable();
             $table->decimal('fondo', 8, 2)->nullable();
             $table->text('descripcion')->nullable();
+            $table->foreignId('estado_lote_id')->nullable()
+                  ->constrained('estado_lotes')
+                  ->nullOnDelete();
             $table->timestamps();
         });
     }

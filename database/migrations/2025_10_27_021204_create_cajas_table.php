@@ -16,14 +16,7 @@ return new class extends Migration
             $table->timestamps();
         });
 
-        // Caja predeterminada
-        DB::table('cajas')->insert([
-            'nombre' => 'Caja Principal',
-            'tipo' => 'efectivo',
-            'saldo_inicial' => 0,
-            'created_at' => now(),
-            'updated_at' => now(),
-        ]);
+        
     }
 
     public function down()

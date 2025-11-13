@@ -17,6 +17,7 @@ return new class extends Migration
             $table->decimal('monto', 12, 2); // monto de la reserva
             $table->date('fecha_reserva');
             $table->text('observaciones')->nullable();
+            $table->string('voucher')->nullable();
             $table->timestamps();
         });
     }

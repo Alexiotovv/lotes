@@ -50,7 +50,7 @@
           <a href="{{ route('reservas.index') }}" class="nav-link">🗸 Reservas</a>
           <a href="{{ route('ventas.index') }}" class="nav-link">🗸 Ventas</a>
           <a href="{{ route('creditos.index') }}" class="nav-link">🗸 Créditos</a>
-          <a href="{{ route('pagos.index') }}" class="nav-link">🗸 Cobros</a>
+          <a href="{{ route('pagos.index') }}" class="nav-link">🗸 Pagos</a>
           <a href="{{ route('cotizaciones.index') }}" class="nav-link">🗸 Cotizaciones</a>          
         </div>
 
@@ -125,7 +125,7 @@
         <div class="collapse ps-3" id="menuFacturacion">
           <a href="{{ route('reservas.index') }}" class="nav-link">🗸 Reservas</a>
           <a href="{{ route('clientes.index') }}" class="nav-link">🗸 Clientes</a>
-          <a href="{{ route('pagos.index') }}" class="nav-link">🗸 Cobros</a>
+          <a href="{{ route('pagos.index') }}" class="nav-link">🗸 Pagos</a>
           <a class="nav-link" href="{{ route('clientes.create') }}">➕ Registrar Cliente</a>
           <a class="nav-link" href="{{ route('creditos.index') }}"> 👥 Créditos Cliente</a>
           <a class="nav-link" href="{{ route('cotizaciones.index') }}">🧾 Mis Cotizaciones</a>

@@ -12,6 +12,7 @@ return new class extends Migration
             $table->id();
             $table->decimal('monto_reserva_default', 10, 2)->default(200.00);
             $table->boolean('registrar_lote_compra')->default(false);
+            $table->decimal('monto_compra_lote', 10, 2)->default(0.00);
             $table->timestamps();
         });
 

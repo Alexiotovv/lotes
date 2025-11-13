@@ -13,10 +13,11 @@ return new class extends Migration
             $table->string('dni_ruc', 15)->unique();
             $table->string('nombre_cliente', 150);
             $table->enum('genero', ['Masculino', 'Femenino', 'Otro'])->nullable();
-            $table->string('direccion', 255)->nullable();
-            $table->string('departamento', 100)->nullable();
-            $table->string('provincia', 100)->nullable();
-            $table->string('distrito', 100)->nullable();
+            $table->string('estado_civil', 20)->nullable();
+            $table->string('direccion', 100)->nullable();
+            $table->string('departamento', 50)->nullable();
+            $table->string('provincia', 50)->nullable();
+            $table->string('distrito', 50)->nullable();
             $table->string('telefono', 20)->nullable();
             $table->timestamps();
         });

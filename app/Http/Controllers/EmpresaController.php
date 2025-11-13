@@ -23,6 +23,10 @@ class EmpresaController extends Controller
             'ruc' => 'required|string|size:11|unique:empresas,ruc,' . $empresa->id,
             'direccion' => 'required|string|max:255',
             'descripcion' => 'nullable|string',
+            'departamento' => 'nullable|string',
+            'provincia' => 'nullable|string',
+            'distrito' => 'nullable|string',
+            'telefono' => 'nullable|string',
             'logo' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048', // hasta 2MB
         ]);
 

@@ -46,6 +46,7 @@ class CreditoController extends Controller
         if ($search = request('search')) {
             $query->where(function ($q) use ($search) {
                 $q->where('ventas.id', 'like', "%{$search}%")
+                ->orWhere('ventas.created_at', 'like', "%{$search}%")
                 ->orWhereHas('cliente', fn($q2) => $q2->where('nombre_cliente', 'like', "%{$search}%"))
                 ->orWhereHas('lote', fn($q2) => $q2->where('codigo', 'like', "%{$search}%")->orWhere('nombre', 'like', "%{$search}%"));
             });
