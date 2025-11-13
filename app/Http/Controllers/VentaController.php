@@ -12,6 +12,9 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
 use App\Models\Empresa;
+use Illuminate\Database\QueryException;
+use PDOException;
+
 class VentaController extends Controller
 {
     public function index(Request $request)
@@ -341,27 +344,38 @@ class VentaController extends Controller
     {
         $venta = Venta::with('lote')->findOrFail($id);
 
-        // Verifica si existen cronogramas asociados
-        if ($venta->cronogramas()->exists()) {
+        try {
+            DB::transaction(function () use ($venta) {
+                // 1. Eliminar movimientos asociados
+                \App\Models\Movimiento::where('venta_id', $venta->id)->delete();
+
+                // 2. Revertir el lote a estado "Disponible"
+                if ($venta->lote) {
+                    $venta->lote->update(['estado_lote_id' => 1]);
+                }
+
+                // 3. Eliminar la venta
+                $venta->delete();
+            });
+
             return redirect()->route('ventas.index')
-                ->with('error', 'No se puede eliminar la venta porque tiene cronogramas asociados.');
-        }
+                ->with('success', 'Venta, sus movimientos y lote actualizados correctamente.');
 
-        DB::transaction(function () use ($venta) {
-            // 1. Eliminar movimientos asociados a esta venta
-            \App\Models\Movimiento::where('venta_id', $venta->id)->delete();
-
-            // 2. Revertir el lote a estado "Disponible" (id = 1)
-            if ($venta->lote) {
-                $venta->lote->update(['estado_lote_id' => 1]);
+        } catch (QueryException $e) {
+            // ✅ Detectar si es un error de restricción de clave foránea
+            if ($e->getCode() === '23000') { // Código de error de integridad referencial
+                $mensaje = 'No se puede eliminar la venta porque tiene registros asociados (como contratos, cronogramas, movimientos, etc).';
+                return redirect()->route('ventas.index')->with('error', $mensaje);
             }
 
-            // 3. Eliminar la venta
-            $venta->delete();
-        });
-
-        return redirect()->route('ventas.index')
-            ->with('success', 'Venta, sus movimientos y lote actualizados correctamente.');
+            // ✅ Otro error de base de datos
+            \Log::error('Error al eliminar venta: ' . $e->getMessage());
+            return redirect()->route('ventas.index')->with('error', 'Ocurrió un error al intentar eliminar la venta.');
+        } catch (\Exception $e) {
+            // ✅ Error general (no relacionado con la base de datos)
+            \Log::error('Error inesperado al eliminar venta: ' . $e->getMessage());
+            return redirect()->route('ventas.index')->with('error', 'Ocurrió un error inesperado.');
+        }
     }
     
 
@@ -392,5 +406,67 @@ class VentaController extends Controller
 
         return redirect()->route('ventas.index')->with('success', 'Estado actualizado correctamente.');
     }
+
+    // ✅ Método para obtener detalle del cronograma
+public function detalleCronograma(Venta $venta)
+{
+    $cronogramas = $venta->cronogramas()->orderBy('nro_cuota')->get();
+
+    // Verificar si tiene pagos
+    $tienePagos = false;
+    foreach ($cronogramas as $crono) {
+        if ($crono->pagos()->exists()) {
+            $tienePagos = true;
+            break;
+        }
+    }
+
+    return response()->json([
+        'cronogramas' => $cronogramas->map(function ($c) {
+            return [
+                'id' => $c->id,
+                'nro_cuota' => $c->nro_cuota,
+                'fecha_pago' => $c->fecha_pago->format('d/m/Y'),
+                'cuota' => $c->cuota,
+                'saldo' => $c->saldo,
+                'interes' => $c->interes,
+                'amortizacion' => $c->amortizacion,
+                'estado' => $c->estado,
+            ];
+        }),
+        'tiene_pagos' => $tienePagos,
+    ]);
+}
+
+    public function eliminarCronograma(Venta $venta)
+    {
+        // ✅ Verificar si tiene pagos
+        foreach ($venta->cronogramas as $crono) {
+            if ($crono->pagos()->exists()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'No se puede eliminar el cronograma porque tiene pagos registrados.'
+                ]);
+            }
+        }
+
+        DB::transaction(function () use ($venta) {
+            // ✅ Eliminar cronogramas
+            $venta->cronogramas()->delete();
+
+            // ✅ Actualizar campo cronograma_generado
+            $venta->update([
+                'cronograma_generado' => false, // ✅ Nuevo
+            ]);
+
+          
+        });
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Cronograma eliminado correctamente.'
+        ]);
+    }
+
 
 }

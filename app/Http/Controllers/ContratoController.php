@@ -33,6 +33,27 @@ class ContratoController extends Controller
 
         return response()->json(['message' => 'Contrato anulado', 'venta_id' => $ventaId]);
     }
+    // app/Http/Controllers/ContratoController.php
+
+    public function eliminarPermanente(Contrato $contrato)
+    {
+        // ✅ Solo permitir eliminar si está anulado
+        if ($contrato->activo) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Solo se puede eliminar contratos anulados.'
+            ], 400);
+        }
+
+        $ventaId = $contrato->venta_id;
+        $contrato->delete(); // Si usa soft deletes, use forceDelete()
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Contrato eliminado permanentemente.',
+            'venta_id' => $ventaId
+        ]);
+    }
 
     public function generar(Venta $venta)
     {

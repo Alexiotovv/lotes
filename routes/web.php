@@ -68,6 +68,14 @@ Route::middleware(['auth', 'vendedor'])->group(function () {
 
     //GenerarCronograma
     Route::post('ventas/{venta}/generar-cronograma', [VentaController::class, 'generarCronograma'])->name('ventas.generar-cronograma');
+
+    // Detalle del cronograma en modal
+    Route::get('/ventas/{venta}/cronograma-detalle', [VentaController::class, 'detalleCronograma'])->name('ventas.cronograma.detalle');
+
+    // Eliminar cronograma
+    Route::delete('/ventas/{venta}/eliminar-cronograma', [VentaController::class, 'eliminarCronograma'])->name('ventas.eliminar.cronograma');
+
+
 });
 
 // === Rutas solo para ADMINISTRADORES ===
@@ -76,8 +84,9 @@ Route::middleware(['auth', 'admin'])->group(function () {
     //Contratos
     Route::get('/contratos', [ContratoController::class, 'index'])->name('contratos.index');
     Route::get('/contratos/{contrato}', [ContratoController::class, 'ver'])->name('contratos.ver');
+    Route::post('/ventas/{venta}/contrato/generar', [ContratoController::class, 'generar'])->name('ventas.contrato.generar');
     Route::delete('/contratos/{contrato}', [ContratoController::class, 'destroy'])->name('contratos.destroy');
-
+    Route::delete('/contratos/{contrato}/eliminar-permanente', [ContratoController::class, 'eliminarPermanente'])->name('contratos.eliminar.permanente');
 
     Route::put('/ventas/{venta}/cambiar-estado', [VentaController::class, 'cambiarEstado'])->name('ventas.cambiar-estado');
 
