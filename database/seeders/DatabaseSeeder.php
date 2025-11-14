@@ -12,6 +12,7 @@ use Database\Seeders\MetodoPagoSeeder;
 use Database\Seeders\TasaSeeder;
 use Database\Seeders\EmpresaSeeder;
 use Database\Seeders\CajaSeeder;
+use Database\Seeders\ConceptoSeeder;
 
 class DatabaseSeeder extends Seeder
 {
@@ -24,5 +25,6 @@ class DatabaseSeeder extends Seeder
         $this->call([TasaSeeder::class,]);
         $this->call([EmpresaSeeder::class,]);
         $this->call([CajaSeeder::class,]);
+        $this->call([ConceptoSeeder::class,]);
     }
 }

@@ -17,11 +17,7 @@
             color: #000;
             margin: 0;
             padding: 0;
-        }
-
-        .container {
-            width: 95%;
-            margin: auto;
+            min-height: 100vh;
         }
 
         .header {
@@ -105,6 +101,25 @@
 
         @media print {
             button { display: none; }
+            
+            body {
+                background-color: white; /* Quitar fondo gris al imprimir */
+                /* display: block; Cambiar a bloque */
+                align-items: normal; /* Quitar centrado vertical */
+                
+            }
+            .a4-container {
+                box-shadow: none; /* Quitar sombra */
+                margin: 0; /* Quitar márgenes de pantalla */
+                padding-top: 5mm; /* Asegurar márgenes internos */
+                padding-bottom: 5mm;
+                padding-left: 5mm;
+                padding-right: 5mm;
+            }
+            @page {
+                margin: 5mm 10mm; /* Margen superior/inferior: 20mm, laterales: 15mm */
+                size: A4;
+            }
         }
 
         button {
@@ -166,11 +181,22 @@
         .tabla-cronograma td.texto {
             text-align: left;
         }
-        
+        .a4-container {
+            width: 95%;
+            margin: auto;
+            width: 210mm; /* Ancho A4 */
+            min-height: 297mm; /* Alto A4 */
+            background-color: white;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1); /* Efecto de hoja real */
+            padding: 15mm; /* Margen interno */
+            box-sizing: border-box;
+            margin-top: 10mm; /* Margen superior en pantalla */
+            margin-bottom: 10mm; /* Margen inferior en pantalla */
+        }
     </style>
 </head>
 <body>
-<div class="container">
+<div class="a4-container">
     <!-- Encabezado con logo y datos de la empresa -->
     <div class="header">
         <img src="{{ asset('storage/' . $empresa->logo) }}" alt="Logo" class="logo"> <!-- Reemplace con la ruta real de su logo -->
@@ -180,6 +206,7 @@
             <p>{{ optional($empresa)->direccion ?? 'PSJ. SIMÓN BOLÍVAR N° 159 - MORALES' }}</p>
             <p>{{ optional($empresa)->descripcion ?? 'LOTIZACIÓN LOS CEDROS DE SAN JUAN' }}</p>
         </div>
+        <button onclick="window.print()">🖨️ Imprimir</button>
     </div>
     <div class="row" style="text-align: center;">
         <h3>Cronograma de Pago</h3>
@@ -212,7 +239,7 @@
         <tbody>
             @foreach ($rows as $r)
             <tr>
-                <td class="nro">{{ $r['nro'] }}</td>
+                <td class="nro">{{ $r['nro_cuota'] }}</td>
                 <td class="fecha">{{ $r['fecha_pago'] }}</td>
                 <td class="saldo">{{ $r['saldo'] }}</td>
                 <td class="interes">{{ $r['interes'] }}</td>
@@ -263,7 +290,7 @@
     <!-- Pie de página -->
     <div class="footer">
         <p><strong>Nota:</strong> Las fechas y montos son referenciales según la tasa indicada.</p>
-        <button onclick="window.print()">🖨️ Imprimir</button>
+        
     </div>
 </div>
 

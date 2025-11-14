@@ -28,8 +28,32 @@
         }
 
         .header {
-            text-align: center;
+            display: flex;
+            align-items: center;
+            gap: 15px;
             margin-bottom: 10px;
+            border-bottom: 2px solid #000;
+            padding-bottom: 5px;
+        }
+        .logo {
+            width: 60px;
+            height: 60px;
+        }
+
+        .empresa-info {
+            text-align: center;
+            flex-grow: 1;
+        }
+
+        .empresa-info h2 {
+            font-size: 14px;
+            margin: 0;
+            font-weight: bold;
+        }
+
+        .empresa-info p {
+            margin: 2px 0;
+            font-size: 10px;
         }
 
         .datos {
@@ -76,25 +100,44 @@
         }
 
         button {
-            margin-top: 20px;
-            padding: 8px 14px;
+            margin-top: 15px;
+            padding: 6px 12px;
             background-color: #0d6efd;
             color: white;
             border: none;
-            border-radius: 6px;
+            border-radius: 4px;
             cursor: pointer;
+            font-size: 11px;
         }
 
         button:hover {
             background-color: #0a58ca;
         }
+        .a4-container {
+            width: 95%;
+            margin: auto;
+            width: 210mm; /* Ancho A4 */
+            min-height: 297mm; /* Alto A4 */
+            background-color: white;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1); /* Efecto de hoja real */
+            padding: 15mm; /* Margen interno */
+            box-sizing: border-box;
+            margin-top: 10mm; /* Margen superior en pantalla */
+            margin-bottom: 10mm; /* Margen inferior en pantalla */
+        }
     </style>
 </head>
 <body>
-<div class="container">
+<div class="a4-container">
     <div class="header">
-        <h2>{{ optional($empresa)->nombre ?? 'EMPRESA' }}</h2>
-        <h4>REPORTE DE PAGOS REALIZADOS POR EL CLIENTE</h4>
+        <img src="{{ asset('storage/' . $empresa->logo) }}" alt="Logo" class="logo"> <!-- Reemplace con la ruta real de su logo -->
+        <div class="empresa-info">
+            <h2>{{ optional($empresa)->nombre ?? 'CONSTRUCCIONES E INMOBILIARIA ALARCON SAC' }}</h2>
+            <p>R.U.C. {{ optional($empresa)->ruc ?? '20603441568' }}</p>
+            <p>{{ optional($empresa)->direccion ?? 'PSJ. SIMÓN BOLÍVAR N° 159 - MORALES' }}</p>
+            <p>{{ optional($empresa)->descripcion ?? 'LOTIZACIÓN LOS CEDROS DE SAN JUAN' }}</p>
+        </div>
+        <button onclick="window.print()">🖨️ Imprimir</button>
     </div>
 
     <div class="datos">

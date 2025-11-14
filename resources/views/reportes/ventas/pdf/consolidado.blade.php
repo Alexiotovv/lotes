@@ -117,10 +117,32 @@
         button:hover {
             background-color: #0a58ca;
         }
+        button {
+            margin-top: 15px;
+            padding: 6px 12px;
+            background-color: #0d6efd;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 11px;
+        }
+        .a4-container {
+            width: 95%;
+            margin: auto;
+            width: 210mm; /* Ancho A4 */
+            min-height: 297mm; /* Alto A4 */
+            background-color: white;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1); /* Efecto de hoja real */
+            padding: 15mm; /* Margen interno */
+            box-sizing: border-box;
+            margin-top: 10mm; /* Margen superior en pantalla */
+            margin-bottom: 10mm; /* Margen inferior en pantalla */
+        }
     </style>
 </head>
 <body>
-    <div class="container">
+    <div class="a4-container">
         <!-- Encabezado con logo y datos de la empresa -->
         <div class="header">
             <img src="{{ asset('storage/' . ($empresa->logo ?? 'images/logo.png')) }}" alt="Logo" class="logo">
@@ -130,6 +152,7 @@
                 <p>{{ optional($empresa)->direccion ?? 'PSJ. SIMÓN BOLÍVAR N° 159 - MORALES' }}</p>
                 <p>{{ optional($empresa)->descripcion ?? 'LOTIZACIÓN LOS CEDROS DE SAN JUAN' }}</p>
             </div>
+            <button onclick="window.print()">🖨️ Imprimir</button>
         </div>
 
         <!-- Título del reporte -->
@@ -192,7 +215,7 @@
         </table>
 
         <div class="footer">
-            <button onclick="window.print()">🖨️ Imprimir</button>
+            
         </div>
     </div>
 
