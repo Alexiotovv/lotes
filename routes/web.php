@@ -13,6 +13,7 @@ use App\Http\Controllers\CompraController;
 use App\Http\Controllers\TasaController;
 use App\Http\Controllers\ReporteController;
 use App\Http\Controllers\ContratoController;
+use App\Http\Controllers\MapImageController;
 // === Autenticación ===
 Route::get('/login', [LoginController::class, 'showLoginForm'])->name('login');
 Route::post('/login', [LoginController::class, 'login']);
@@ -80,6 +81,15 @@ Route::middleware(['auth', 'vendedor'])->group(function () {
 
 // === Rutas solo para ADMINISTRADORES ===
 Route::middleware(['auth', 'admin'])->group(function () {
+
+    //Imagen Posicionada
+    Route::get('/mapa/editar', [MapImageController::class, 'index'])->name('map.edit');
+    Route::post('/mapa/subir', [MapImageController::class, 'store'])->name('map.subir');
+    Route::post('/mapa/guardar-posicion', [MapImageController::class, 'guardarPosicion'])->name('map.guardar.posicion');
+    Route::get('/mapa/obtener-posicion', [MapImageController::class, 'obtenerPosicion'])->name('map.obtener.posicion');
+    Route::post('/mapa/actualizar-posicion', [MapImageController::class, 'actualizarPosicion'])->name('mapa.actualizar.posicion');
+    Route::post('/mapa/subir-imagen', [MapImageController::class, 'subirImagen'])->name('mapa.subir.imagen');
+    Route::post('/mapa/actualizar-posicion', [MapImageController::class, 'actualizarPosicion'])->name('mapa.actualizar.posicion');
 
     //Contratos
     Route::get('/contratos', [ContratoController::class, 'index'])->name('contratos.index');

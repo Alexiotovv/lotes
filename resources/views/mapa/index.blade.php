@@ -90,10 +90,11 @@
 
     <script>
         $(document).ready(function() {
-            const map = L.map('map',{ maxZoom: 20 }).setView([-3.844051, -73.3432986], 19);
+            const map = L.map('map',{ maxZoom: 19 }).setView([-3.844051, -73.3432986], 19);
 
             var calle = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                maxZoom: 20,
+                maxZoom: 19,
+                minZoom: 15,
                 attribution: '&copy; OpenStreetMap contributors'
             }).addTo(map);
 
@@ -107,8 +108,8 @@
             const deltaLng = 0.0120; // este-oeste
 
             const imageBounds = [
-            [centro[0] - deltaLat, centro[1] - deltaLng], // suroeste
-            [centro[0] + deltaLat, centro[1] + deltaLng]  // noreste
+                [centro[0] - deltaLat, centro[1] - deltaLng], // suroeste
+                [centro[0] + deltaLat, centro[1] + deltaLng]  // noreste
             ];
 
             // Cargar la imagen del plano

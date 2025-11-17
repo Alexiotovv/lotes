@@ -12,12 +12,33 @@
             line-height: 1.6;
         }
         .header {
-            text-align: center;
-            margin-bottom: 20px;
-        }
-        .company-info {
-            font-size: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
             margin-bottom: 10px;
+            border-bottom: 2px solid #000;
+            padding-bottom: 10px;
+        }
+
+        .logo {
+            width: 80px;
+            height: auto;
+        }
+
+        .empresa-info {
+            text-align: center;
+            flex-grow: 1;
+        }
+
+        .empresa-info h2 {
+            font-size: 14px;
+            margin: 0;
+            font-weight: bold;
+        }
+
+        .empresa-info p {
+            margin: 2px 0;
+            font-size: 10px;
         }
         .report-title {
             font-size: 18px;
@@ -82,105 +103,112 @@
             color: #666;
             text-align: center;
         }
+        .a4-container {
+            width: 95%;
+            margin: auto;
+            width: 210mm; /* Ancho A4 */
+            min-height: 297mm; /* Alto A4 */
+            background-color: white;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1); /* Efecto de hoja real */
+            padding: 15mm; /* Margen interno */
+            box-sizing: border-box;
+            margin-top: 10mm; /* Margen superior en pantalla */
+            margin-bottom: 10mm; /* Margen inferior en pantalla */
+        }
+
+        button {
+            margin-top: 15px;
+            padding: 6px 12px;
+            background-color: #0d6efd;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 11px;
+        }
     </style>
 </head>
 <body>
-    <div class="header">
-        <div class="company-info">
-            <strong>{{ $empresa->nombre }}</strong><br>
-            RUC: {{ $empresa->ruc ?? 'N/A' }}<br>
-            Dirección: {{ $empresa->direccion ?? 'N/A' }}
+    <div class="a4-container">
+        <div class="header">
+            <img src="{{ asset('storage/' . ($empresa->logo ?? 'images/logo.png')) }}" alt="Logo" class="logo">
+            <div class="empresa-info">
+                <h2>{{ optional($empresa)->nombre ?? 'CONSTRUCCIONES E INMOBILIARIA ALARCON SAC' }}</h2>
+                <p>R.U.C. {{ optional($empresa)->ruc ?? '20603441568' }}</p>
+                <p>{{ optional($empresa)->direccion ?? 'PSJ. SIMÓN BOLÍVAR N° 159 - MORALES' }}</p>
+                <p>{{ optional($empresa)->descripcion ?? 'LOTIZACIÓN LOS CEDROS DE SAN JUAN' }}</p>
+            </div>
+            <button onclick="window.print()">🖨️ Imprimir</button>
         </div>
-        <div class="report-title">CUOTAS DEL MES</div>
-        <div class="report-subtitle">
-            Fecha de emisión: {{ now()->format('d/m/Y H:i') }}<br>
-            Mes: {{ \DateTime::createFromFormat('!m', $mes)->format('F') }} de {{ $anio }}
+        
+        
+        
+        <div class="summary">
+            <div class="report-title">CUOTAS DEL MES</div>
+            {{-- 
+            <div class="report-subtitle">
+                Fecha de emisión: {{ now()->format('d/m/Y H:i') }}<br>
+                Mes: {{ \DateTime::createFromFormat('!m', $mes)->format('F') }} de {{ $anio }}
+            </div> --}}
+
+            <div><strong>Total de Cuotas:</strong> {{ $cronogramas->count() }}</div>
+            <div><strong>Monto Total Programado:</strong> S/ {{ number_format($cronogramas->sum('cuota'), 2) }}</div>
         </div>
-    </div>
 
-    <div class="summary">
-        <div><strong>Total de Cuotas:</strong> {{ $cronogramas->count() }}</div>
-        <div><strong>Monto Total Programado:</strong> S/ {{ number_format($cronogramas->sum('cuota'), 2) }}</div>
-    </div>
-
-    <table>
-        <thead>
-            <tr>
-                <th>ID Cuota</th>
-                <th>Cliente</th>
-                <th>DNI/RUC</th>
-                <th>Lote</th>
-                <th>N° Cuota</th>
-                <th>Fecha Pago</th>
-                <th>Cuota (S/)</th>
-                <th>Estado</th>
-            </tr>
-        </thead>
-        <tbody>
-            @forelse($cronogramas as $crono)
+        <table>
+            <thead>
                 <tr>
-                    <td>{{ $crono->id }}</td>
-                    <td>{{ $crono->venta->cliente->nombre_cliente ?? 'N/A' }}</td>
-                    <td>{{ $crono->venta->cliente->dni_ruc ?? 'N/A' }}</td>
-                    <td>{{ $crono->venta->lote->codigo ?? 'N/A' }} - {{ $crono->venta->lote->nombre ?? 'N/A' }}</td>
-                    <td>{{ $crono->nro_cuota }}</td>
-                    <td>{{ $crono->fecha_pago->format('d/m/Y') }}</td>
-                    <td class="text-right">{{ number_format($crono->cuota, 2) }}</td>
-                    <td>
-                        @switch($crono->estado)
-                            @case('pagado')
-                                <span class="badge badge-success">PAGADO</span>
-                                @break
-                            @case('vencido')
-                                <span class="badge badge-danger">VENCIDO</span>
-                                @break
-                            @case('pendiente')
-                                <span class="badge badge-warning">PENDIENTE</span>
-                                @break
-                            @default
-                                <span class="badge" style="background-color: #e2e3e5; color: #383d41;">{{ strtoupper($crono->estado) }}</span>
-                        @endswitch
-                    </td>
+                    <th>ID Cuota</th>
+                    <th>Cliente</th>
+                    <th>DNI/RUC</th>
+                    <th>Lote</th>
+                    <th>N° Cuota</th>
+                    <th>Fecha Pago</th>
+                    <th>Cuota (S/)</th>
+                    <th>Estado</th>
                 </tr>
-            @empty
-                <tr>
-                    <td colspan="8" class="text-center">No se encontraron cuotas programadas para este mes.</td>
-                </tr>
-            @endforelse
-        </tbody>
-    </table>
+            </thead>
+            <tbody>
+                @forelse($cronogramas as $crono)
+                    <tr>
+                        <td>{{ $crono->id }}</td>
+                        <td>{{ $crono->venta->cliente->nombre_cliente ?? 'N/A' }}</td>
+                        <td>{{ $crono->venta->cliente->dni_ruc ?? 'N/A' }}</td>
+                        <td>{{ $crono->venta->lote->codigo ?? 'N/A' }} - {{ $crono->venta->lote->nombre ?? 'N/A' }}</td>
+                        <td>{{ $crono->nro_cuota }}</td>
+                        <td>{{ $crono->fecha_pago->format('d/m/Y') }}</td>
+                        <td class="text-right">{{ number_format($crono->cuota, 2) }}</td>
+                        <td>
+                            @switch($crono->estado)
+                                @case('pagado')
+                                    <span class="badge badge-success">PAGADO</span>
+                                    @break
+                                @case('vencido')
+                                    <span class="badge badge-danger">VENCIDO</span>
+                                    @break
+                                @case('pendiente')
+                                    <span class="badge badge-warning">PENDIENTE</span>
+                                    @break
+                                @default
+                                    <span class="badge" style="background-color: #e2e3e5; color: #383d41;">{{ strtoupper($crono->estado) }}</span>
+                            @endswitch
+                        </td>
+                    </tr>
+                @empty
+                    <tr>
+                        <td colspan="8" class="text-center">No se encontraron cuotas programadas para este mes.</td>
+                    </tr>
+                @endforelse
+            </tbody>
+        </table>
 
-    <div class="footer">
-        Reporte generado automáticamente por el sistema.<br>
-        Impreso por: {{ auth()->user()->name ?? 'Sistema' }} | Fecha: {{ now()->format('d/m/Y H:i') }}
+        <div class="footer">
+            Reporte generado automáticamente por el sistema.<br>
+            Impreso por: {{ auth()->user()->name ?? 'Sistema' }} | Fecha: {{ now()->format('d/m/Y H:i') }}
+        </div>
+
+       
     </div>
-
-    <!-- Botón para imprimir (no se imprime) -->
-    <button 
-        onclick="window.print()" 
-        style="
-            position: fixed; 
-            top: 20px; 
-            right: 20px; 
-            z-index: 1000; 
-            display: block;
-            padding: 0.5rem 1rem;
-            font-size: 0.875rem;
-            font-weight: 500;
-            color: #212529;
-            background-color: rgba(248, 249, 250, 0.9);
-            border: 1px solid rgba(0, 0, 0, 0.1);
-            border-radius: 0.375rem;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-            cursor: pointer;
-            transition: all 0.2s ease-in-out;
-            backdrop-filter: blur(4px);
-        "
-        onPrint="this.style.display='none'"
-    >
-        🖨️ Imprimir
-    </button>
-
     <script>
         // Imprime automáticamente al abrir
         window.addEventListener('load', () => {

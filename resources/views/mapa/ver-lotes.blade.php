@@ -101,7 +101,8 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Capa base
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        maxZoom: 20,
+        maxZoom: 19,
+        minZoom:15,
         attribution: '&copy; OpenStreetMap contributors'
     }).addTo(map);
 

@@ -1,118 +1,532 @@
 @extends('layouts.app')
 
 @section('css')
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-<style>
-    #map { height: 600px; }
-</style>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+            background-color: #f0f0f0;
+        }
+        #controlesEliminar {
+            position: absolute;
+            top: 120px; /* Debajo de los controles de zoom */
+            right: 20px;
+            z-index: 1000;
+        }
+
+        .btn-eliminar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            border: none;
+            background-color: #dc3545;
+            color: white;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+            cursor: pointer;
+            font-size: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .btn-eliminar:hover {
+            background-color: #c82333;
+        }
+
+        .btn-eliminar:disabled {
+            background-color: #6c757d;
+            cursor: not-allowed;
+        }
+        #contenedorMapa {
+            position: relative;
+            width: 100%;
+            height: 600px;
+            border: 1px solid #ccc;
+            overflow: hidden; /* Evitar scroll del contenedor */
+        }
+
+        #mapaFondo {
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+        }
+
+        #imagenEditable {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%); /* Centrado inicial */
+            max-width: none;
+            cursor: move;
+            user-select: none;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+            z-index: 2; /* Siempre encima del mapa */
+            pointer-events: auto; /* Permitir eventos de mouse sobre la imagen */
+        }
+
+        /* Controles sobre el mapa */
+        #controlesZoom {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            z-index: 1000;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .btn-zoom {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            border: none;
+            background-color: white;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+            cursor: pointer;
+            font-size: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .btn-zoom:hover {
+            background-color: #f0f0f0;
+        }
+
+        #controlesMovimiento {
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+            z-index: 1000;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .btn-mover {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            border: none;
+            background-color: white;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+            cursor: pointer;
+            font-size: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .btn-mover:hover {
+            background-color: #f0f0f0;
+        }
+
+        #infoEstado {
+            position: absolute;
+            top: 10px;
+            left: 50px;
+            z-index: 1000;
+            background-color: rgba(0,0,0,0.7);
+            color: white;
+            padding: 10px;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+        #controlesOpacidad {
+            position: absolute;
+            top: 170px; /* Debajo del botón eliminar */
+            right: 20px;
+            z-index: 1000;
+            background: white;
+            padding: 10px;
+            border-radius: 20px;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .control-opacidad {
+            writing-mode: bt-lr; /* Vertical */
+            -webkit-appearance: slider-vertical;
+            width: 8px;
+            height: 80px;
+            padding: 0 5px;
+        }
+
+        .label-opacidad {
+            font-size: 12px;
+            font-weight: bold;
+            color: #333;
+        }
+
+    </style>
 @endsection
+
 @section('content')
-    
+    <h3>🖼️ Editor de Imagen sobre Mapa</h3>
 
+    <div class="mb-3">
+        <label for="archivoImagen">Seleccionar Imagen:</label>
+        <input type="file" id="archivoImagen" accept="image/*">
+    </div>
 
-<h3 style="text-align:center">🗺️ Editor de Imagen del Mapa</h3>
+    <div id="contenedorMapa">
+        <!-- ✅ Mapa de fondo -->
+        <div id="mapaFondo"></div>
+        <!-- Panel de información del mapa -->
+        <div id="infoMapa" class="position-fixed bottom-0 start-0 end-0 bg-dark text-white p-2 small" style="z-index: 1000; opacity: 0.9;">
+            <div class="container-fluid">
+                <div class="row">
+                    <div class="col-md-4">
+                        <strong>📍 Lat:</strong> <span id="latActual">-</span>
+                    </div>
+                    <div class="col-md-4">
+                        <strong>📍 Lon:</strong> <span id="lonActual">-</span>
+                    </div>
+                    <div class="col-md-4">
+                        <strong>🔍 Zoom:</strong> <span id="zoomActual">-</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- ✅ Imagen editable encima del mapa -->
+        <img id="imagenEditable" src="" alt="Imagen editable" style="display:none;">
 
-<form action="{{ route('map.store') }}" method="POST" enctype="multipart/form-data" style="text-align:center; margin-bottom:10px;">
-  @csrf
-  <input type="file" name="image" required>
-  <button type="submit">{{ $mapImage ? 'Reemplazar Imagen' : 'Subir Imagen' }}</button>
-</form>
+        <!-- Controles de zoom -->
+        <div id="controlesZoom">
+            <button class="btn-zoom" id="btnZoomIn">+</button>
+            <button class="btn-zoom" id="btnZoomOut">−</button>
+            <button class="btn-zoom" id="btnReset">↺</button>
+        </div>
+        <!-- Controles de eliminar -->
+        <div id="controlesEliminar">
+            <button class="btn-eliminar" id="btnEliminarImagen" title="Eliminar imagen seleccionada" disabled>×</button>
+        </div>
+        <!-- Controles de opacidad -->
+        <div id="controlesOpacidad">
+            <span class="label-opacidad">Op.</span>
+            <input type="range" 
+                id="controlOpacidad" 
+                class="control-opacidad" 
+                orient="vertical"
+                min="0.3" 
+                max="1.0" 
+                step="0.05" 
+                value="0.85"
+                title="Ajustar opacidad de la imagen">
+        </div>
+        <!-- Controles de movimiento -->
+        <div id="controlesMovimiento">
+            <button class="btn-mover btn-arriba" id="btnArriba">↑</button>
+            <div class="d-flex">
+                <button class="btn-mover btn-izquierda" id="btnIzquierda">←</button>
+                <button class="btn-mover btn-derecha" id="btnDerecha">→</button>
+            </div>
+            <button class="btn-mover btn-abajo" id="btnAbajo">↓</button>
+        </div>
 
-@if($mapImage)
-  <div id="map"></div>
-  <button id="guardar">💾 Guardar posición</button>
-@endif
+        <!-- Información de estado -->
+        <div id="infoEstado">
+            Escala: <span id="valorEscala">1.00</span> | Posición: X=<span id="posX">0</span>, Y=<span id="posY">0</span>
+        </div>
+    </div>
 
+    <button id="btnGuardarPosicion" class="btn btn-success mt-3">💾 Guardar Posición</button>
 @endsection
-
 
 @section('scripts')
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script>
+        // ✅ Cargar valores desde la base de datos
+        const mapData = @json($mapImage);
 
+        const latInicial = Number(mapData?.lat_map) || -3.844051;
+        const lonInicial = Number(mapData?.lon_map) || -73.3432986;
 
-<!-- ENLACE LOCAL para Leaflet JS (¡PRIMERO!) -->
-<script src="{{ asset('js/leaflet-plugins/leaflet.js') }}"></script>
-<!-- Luego, ENLACE LOCAL para JS de DistortableImage -->
-<script src="{{ asset('dist/leaflet.distortableimage.js') }}"></script>
+        const zoomInicial = mapData?.actual_zoom_map || 19; // Asumiendo que agregará este campo
+        const maxZoom = mapData?.max_zoom_map || 19;
+        const minZoom = mapData?.min_zoom_map || 15;
 
-@if($mapImage)
-<script>
-const map = L.map('map').setView([-3.844051, -73.3432986], 19);
+        // ✅ Inicializar mapa con valores de la base de datos
+        const mapa = L.map('mapaFondo', {
+            maxZoom: maxZoom,
+            minZoom: minZoom
+        }).setView([latInicial, lonInicial], zoomInicial);
 
-L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-    maxZoom: 21,
-    attribution: '&copy; OpenStreetMap contributors'
-}).addTo(map);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            maxZoom: maxZoom,
+            minZoom: minZoom,
+            attribution: '&copy; OpenStreetMap contributors'
+        }).addTo(mapa);
 
-const imageUrl = "{{ asset('storage/' . $mapImage->image_path) }}";
+        // let overlayImagen = null;
+        let overlays = [];  // ← aquí estarán todas las imágenes que subas
+        let overlaySeleccionado = null;  // ← esta es la imagen activa
 
-let savedPosition = {!! json_encode($position) !!};
+        let centroImg = [latInicial, lonInicial]; // Centro de la imagen
+        let anchoLat = 0.0100;  // Tamaño vertical
+        let anchoLng = 0.0120;  // Tamaño horizontal
+        let escalaImg = 1;      // Zoom de la imagen
 
-let imageOverlay;
+        function actualizarOverlay() {
+            if (!overlaySeleccionado) return;
+            const centroImg2 = mapa.getCenter();
+            
+            let halfLat = (anchoLat * escalaImg) / 2;
+            let halfLng = (anchoLng * escalaImg) / 2;
 
-const distortableImageOptions = {
-    translation: {
-        deleteImage: 'Eliminar Imagen',
-        distortImage: 'Distorsionar',
-        dragImage: 'Mover',
-        exportImage: 'Exportar',
-        rotateImage: 'Rotar',
-        scaleImage: 'Escalar',
-        freeRotateImage: 'Girar/Escalar Libre',
-        lockMode: 'Bloquear',
-        confirmImageDelete: '¿Estás seguro de que quieres eliminar esta imagen del mapa?',
-    }
-};
+            let newBounds = [
+                [centroImg2[0] - halfLat, centroImg2[1] - halfLng],
+                [centroImg2[0] + halfLat, centroImg2[1] + halfLng]
+            ];
 
-if (savedPosition && savedPosition.length === 4) {
-    const cornersLatLng = savedPosition.map(p => L.latLng(p[0], p[1]));
+            overlaySeleccionado.setBounds(newBounds);
+        }
 
-    imageOverlay = L.distortableImageOverlay(imageUrl, {
-        ...distortableImageOptions,
-        corners: cornersLatLng,
-    }).addTo(map);
-} else {
-    imageOverlay = L.distortableImageOverlay(imageUrl, {
-        ...distortableImageOptions,
-    }).addTo(map);
+        // ✅ Actualizar panel de información en tiempo real
+        mapa.on('moveend zoomend', function() {
+            const center = mapa.getCenter();
+            const zoom = mapa.getZoom();
 
-    imageOverlay.on('load', function() {
-        if (!savedPosition || savedPosition.length !== 4) {
-            // Solo intentar fitBounds si la imagen tiene límites válidos después de cargarla
-            if (this.getBounds().isValid()) {
-                map.fitBounds(this.getBounds());
-            } else {
-                console.warn("Límites de imagen no válidos al cargar, no se pudo ajustar el mapa.");
+            document.getElementById('latActual').textContent = center.lat.toFixed(7);
+            document.getElementById('lonActual').textContent = center.lng.toFixed(7);
+            document.getElementById('zoomActual').textContent = zoom;
+        });
+
+        // ✅ Al cargar la página, mostrar valores iniciales
+        setTimeout(() => {
+            const center = mapa.getCenter();
+            const zoom = mapa.getZoom();
+            document.getElementById('latActual').textContent = center.lat.toFixed(7);
+            document.getElementById('lonActual').textContent = center.lng.toFixed(7);
+            document.getElementById('zoomActual').textContent = zoom;
+        }, 100);
+
+        // ✅ Botón de guardar posición del mapa
+        $('#btnGuardarPosicion').on('click', function() {
+            const center = mapa.getCenter();
+            const zoom = mapa.getZoom();
+
+            const datos = {
+                lat_map: center.lat,
+                lon_map: center.lng,
+                zoom_actual: zoom,
+                _token: '{{ csrf_token() }}' // ✅ Token incluido en los datos
+            };
+
+            $.ajax({
+                url: '{{ route("mapa.actualizar.posicion") }}',
+                method: 'POST',
+                data: datos,
+                success: function(response) {
+                    if(response.success) {
+                        alert('✅ Posición del mapa guardada correctamente.');
+                    } else {
+                        alert('❌ Error: ' + (response.message || 'Desconocido'));
+                    }
+                },
+                error: function(xhr) {
+                    console.error('Error:', xhr.responseText);
+                    alert('❌ Error de conexión o servidor: ' + xhr.status);
+                }
+            });
+        });
+
+        
+
+       // ... código anterior igual ...
+
+    $('#archivoImagen').on('change', function(e) {
+        const center = mapa.getCenter();
+        const archivo = e.target.files[0];
+        if (!archivo) return;
+
+        const lector = new FileReader();
+
+        lector.onload = function(evt) {
+            const base64 = evt.target.result;
+            const center = mapa.getCenter();
+            const halfLat = 0.0050;
+            const halfLng = 0.0060;
+
+            const imageBounds = [
+                [center.lat - halfLat, center.lng - halfLng],
+                [center.lat + halfLat, center.lng + halfLng]
+            ];
+
+            // Crear overlay con opacidad inicial
+            let newOverlay = L.imageOverlay(base64, imageBounds, { 
+                opacity: 0.85  // Valor inicial que coincide con el control
+            }).addTo(mapa);
+
+            // METADATOS con opacidad
+            newOverlay._meta = {
+                anchoLat: halfLat * 2,
+                anchoLng: halfLng * 2,
+                escala: 1,
+                deltaMovimiento: 0.0003,
+                opacidad: 0.85  // Guardar opacidad actual
+            };
+
+            overlays.push(newOverlay);
+            activarOverlay(newOverlay);
+
+            newOverlay.once('load', () => {
+                const el = newOverlay.getElement();
+                if (el) {
+                    el.style.pointerEvents = "auto";
+                    el.style.cursor = "pointer";
+                    el.addEventListener("click", function(e) {
+                        e.stopPropagation();
+                        activarOverlay(newOverlay);
+                    });
+                }
+            });
+
+            mapa.fitBounds(imageBounds);
+        };
+        lector.readAsDataURL(archivo);
+    });
+
+    // ✅ Botón eliminar imagen seleccionada
+    $('#btnEliminarImagen').on('click', function() {
+        if (!overlaySeleccionado) return;
+        
+        if (confirm('¿Estás seguro de que quieres eliminar esta imagen?')) {
+            // Remover del array de overlays
+            const index = overlays.indexOf(overlaySeleccionado);
+            if (index > -1) {
+                overlays.splice(index, 1);
             }
+            
+            // Remover del mapa
+            mapa.removeLayer(overlaySeleccionado);
+            
+            // Resetear selección
+            overlaySeleccionado = null;
+            
+            // Deshabilitar botón eliminar
+            $('#btnEliminarImagen').prop('disabled', true);
+            
+            console.log('✅ Imagen eliminada');
         }
     });
-}
 
-document.getElementById('guardar').addEventListener('click', () => {
-    const corners = imageOverlay.getCorners();
-    const positionToSave = corners.map(latLng => [latLng.lat, latLng.lng]);
+    // ✅ Actualizar estado del botón eliminar cuando se selecciona una imagen
+    function activarOverlay(overlay) {
+        overlaySeleccionado = overlay;
+        
+        // Remover outline de todas las imágenes
+        overlays.forEach(o => {
+            if (o.getElement()) o.getElement().style.outline = "none";
+        });
 
-    fetch("{{ route('map.update', $mapImage->id) }}", {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'X-CSRF-TOKEN': '{{ csrf_token() }}'
-        },
-        body: JSON.stringify({ position: positionToSave })
-    })
-    .then(r => r.json())
-    .then(res => {
-        if(res.success) {
-            alert('Posición guardada correctamente ✅');
+        // Aplicar outline a la imagen seleccionada
+        if (overlay.getElement()) {
+            overlay.getElement().style.outline = "3px solid red";
+        }
+        
+        // Habilitar botón eliminar
+        $('#btnEliminarImagen').prop('disabled', false);
+    }
+
+    // ✅ Deshabilitar botón eliminar al cargar la página
+    $(document).ready(function() {
+        $('#btnEliminarImagen').prop('disabled', true);
+    });
+
+    // FUNCIÓN CORREGIDA - usa metadatos específicos de cada overlay
+    function actualizarOverlaySeleccionado(deltaLat, deltaLng, zoomDelta = 0) {
+        if (!overlaySeleccionado || !overlaySeleccionado._meta) return;
+        
+        let bounds = overlaySeleccionado.getBounds();
+        let meta = overlaySeleccionado._meta;
+
+        let lat1 = bounds.getSouthWest().lat + deltaLat;
+        let lng1 = bounds.getSouthWest().lng + deltaLng;
+        let lat2 = bounds.getNorthEast().lat + deltaLat;
+        let lng2 = bounds.getNorthEast().lng + deltaLng;
+
+        if (zoomDelta !== 0) {
+            // Usar la escala específica de esta imagen
+            meta.escala += zoomDelta;
+
+            // Limitar escala mínima y máxima
+            if (meta.escala < 0.2) meta.escala = 0.2;
+            if (meta.escala > 5) meta.escala = 5;
+
+            const centerLat = (lat1 + lat2) / 2;
+            const centerLng = (lng1 + lng2) / 2;
+
+            // Usar dimensiones específicas de esta imagen
+            const halfLat = (meta.anchoLat * meta.escala) / 2;
+            const halfLng = (meta.anchoLng * meta.escala) / 2;
+
+            lat1 = centerLat - halfLat;
+            lat2 = centerLat + halfLat;
+            lng1 = centerLng - halfLng;
+            lng2 = centerLng + halfLng;
+        }
+
+        overlaySeleccionado.setBounds([
+            [lat1, lng1],
+            [lat2, lng2]
+        ]);
+    }
+
+    // Botones de movimiento - usar delta del overlay seleccionado
+    $('#btnArriba').click(() => {
+        if (overlaySeleccionado && overlaySeleccionado._meta) {
+            actualizarOverlaySeleccionado(overlaySeleccionado._meta.deltaMovimiento, 0);
+        }
+    });
+
+    $('#btnAbajo').click(() => {
+        if (overlaySeleccionado && overlaySeleccionado._meta) {
+            actualizarOverlaySeleccionado(-overlaySeleccionado._meta.deltaMovimiento, 0);
+        }
+    });
+
+    $('#btnIzquierda').click(() => {
+        if (overlaySeleccionado && overlaySeleccionado._meta) {
+            actualizarOverlaySeleccionado(0, -overlaySeleccionado._meta.deltaMovimiento);
+        }
+    });
+
+    $('#btnDerecha').click(() => {
+        if (overlaySeleccionado && overlaySeleccionado._meta) {
+            actualizarOverlaySeleccionado(0, overlaySeleccionado._meta.deltaMovimiento);
+        }
+    });
+
+    // Botones de zoom
+    $('#btnZoomIn').click(() => actualizarOverlaySeleccionado(0, 0, +0.05));
+    $('#btnZoomOut').click(() => actualizarOverlaySeleccionado(0, 0, -0.05));
+
+    // ✅ Control de opacidad
+    $('#controlOpacidad').on('input', function() {
+        const opacidad = parseFloat($(this).val());
+        
+        if (overlaySeleccionado) {
+            // Aplicar a la imagen seleccionada
+            overlaySeleccionado.setOpacity(opacidad);
+            overlaySeleccionado._meta.opacidad = opacidad;
         } else {
-            alert('Error al guardar la posición ❌');
+            // Aplicar a todas las imágenes si ninguna está seleccionada
+            overlays.forEach(overlay => {
+                overlay.setOpacity(opacidad);
+                if (overlay._meta) {
+                    overlay._meta.opacidad = opacidad;
+                }
+            });
         }
-    })
-    .catch(error => {
-        console.error('Error:', error);
-        alert('Error en la comunicación con el servidor ❌');
     });
-});
-</script>
-@endif
-
+      
+    </script>
+  
 @endsection
