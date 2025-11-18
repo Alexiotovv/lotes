@@ -16,12 +16,29 @@ use Illuminate\Support\Facades\DB;
 
 class MapaController extends Controller
 {
-    // app/Http/Controllers/MapaController.php
+    
     public function index()
-    {
+    {   
         $lotes = Lote::with('estadoLote')->get();
         $estados = EstadoLote::all();
-        return view('mapa.index',compact('lotes','estados'));
+        
+        // ✅ Cargar configuración del mapa desde la base de datos
+        $mapConfig = \App\Models\MapImage::first();
+        
+        // ✅ Cargar imágenes superpuestas
+        $imagenesSuperpuestas = [];
+        if ($mapConfig) {
+            $imagenesSuperpuestas = \App\Models\ImagenSuperpuesta::where('map_image_id', $mapConfig->id)
+                ->where('activo', true)
+                ->get()
+                ->map(function($imagen) {
+                    $data = $imagen->toArray();
+                    $data['url_completa'] = asset('storage/' . $imagen->ruta_imagen);
+                    return $data;
+                });
+        }
+        return view('mapa.index', compact('lotes', 'estados', 'imagenesSuperpuestas', 'mapConfig'));
+        
     }
 
     public function createLote()
@@ -38,7 +55,23 @@ class MapaController extends Controller
             ->sort()
             ->values();
 
-        return view('mapa.create', compact('lotes', 'prefijos'));
+        // ✅ Cargar configuración del mapa desde la base de datos
+        $mapConfig = \App\Models\MapImage::first();
+        
+        // ✅ Cargar imágenes superpuestas
+        $imagenesSuperpuestas = [];
+        if ($mapConfig) {
+            $imagenesSuperpuestas = \App\Models\ImagenSuperpuesta::where('map_image_id', $mapConfig->id)
+                ->where('activo', true)
+                ->get()
+                ->map(function($imagen) {
+                    $data = $imagen->toArray();
+                    $data['url_completa'] = asset('storage/' . $imagen->ruta_imagen);
+                    return $data;
+                });
+        }
+
+        return view('mapa.create', compact('lotes', 'prefijos', 'mapConfig', 'imagenesSuperpuestas'));
     }
 
     public function guardarLotes(Request $request)
@@ -137,36 +170,6 @@ class MapaController extends Controller
             'data' => $creados
         ]);
     }
-
-    // public function guardarLotes(Request $request)
-    // {
-        
-    //     $lotes = $request->input('lotes');
-
-    //     if (!$lotes || !is_array($lotes)) {
-    //         return response()->json([
-    //             'success' => false,
-    //             'message' => '❌ No se recibieron lotes válidos'
-    //         ], 400);
-    //     }
-
-    //     $creados = [];
-    //     foreach ($lotes as $lote) {
-    //         $nuevo = Lote::create([
-    //             'codigo' => $lote['codigo'],
-    //             'latitud' => $lote['latitud'],
-    //             'longitud' => $lote['longitud'],
-    //             'estado_lote_id' => 1, // Disponible por defecto
-    //         ]);
-    //         $creados[] = $nuevo;
-    //     }
-
-    //     return response()->json([
-    //         'success' => true,
-    //         'message' => '✅ Lotes guardados correctamente',
-    //         'data' => $creados
-    //     ]);
-    // }
     
    public function updatePosition(Request $request, $id)
     {
@@ -181,7 +184,24 @@ class MapaController extends Controller
     {
         $lotes = Lote::with('estadoLote')->get();
         $empresa = Empresa::first();
-        return view('mapa.ver-lotes', compact('lotes','empresa'));
+        
+        // ✅ Cargar configuración del mapa desde la base de datos
+        $mapConfig = \App\Models\MapImage::first();
+        
+        // ✅ Cargar imágenes superpuestas
+        $imagenesSuperpuestas = [];
+        if ($mapConfig) {
+            $imagenesSuperpuestas = \App\Models\ImagenSuperpuesta::where('map_image_id', $mapConfig->id)
+                ->where('activo', true)
+                ->get()
+                ->map(function($imagen) {
+                    $data = $imagen->toArray();
+                    $data['url_completa'] = asset('storage/' . $imagen->ruta_imagen);
+                    return $data;
+                });
+        }
+
+        return view('mapa.ver-lotes', compact('lotes', 'empresa', 'mapConfig', 'imagenesSuperpuestas'));
     }
 
 }

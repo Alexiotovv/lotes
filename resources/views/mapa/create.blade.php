@@ -73,23 +73,123 @@
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
 <script>
-    const map = L.map('map',{ maxZoom: 20 }).setView([-3.844051, -73.3432986], 19);
+    // ✅ Cargar configuración desde la base de datos
+    const mapConfig = @json($mapConfig ?? null);
+    const imagenesSuperpuestas = @json($imagenesSuperpuestas ?? []);
+
+    // ✅ Valores por defecto en caso de que no haya configuración
+    const latInicial = mapConfig?.lat_map ? parseFloat(mapConfig.lat_map) : -3.844051;
+    const lonInicial = mapConfig?.lon_map ? parseFloat(mapConfig.lon_map) : -73.3432986;
+    const zoomInicial = mapConfig?.actual_zoom_map ? parseInt(mapConfig.actual_zoom_map) : 19;
+    const maxZoom = mapConfig?.max_zoom_map ? parseInt(mapConfig.max_zoom_map) : 20;
+    const minZoom = mapConfig?.min_zoom_map ? parseInt(mapConfig.min_zoom_map) : 15;
+
+    console.log('🔧 Configuración del mapa cargada:', {
+        latInicial, lonInicial, zoomInicial, maxZoom, minZoom
+    });
+
+    // ✅ Inicializar mapa con valores de la base de datos
+    const map = L.map('map', {
+        maxZoom: maxZoom,
+        minZoom: minZoom
+    }).setView([latInicial, lonInicial], zoomInicial);
+
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        maxZoom: 20,
-        attribution: '&copy; OpenStreetMap'
+        maxZoom: maxZoom,
+        minZoom: minZoom,
+        attribution: '&copy; OpenStreetMap contributors'
     }).addTo(map);
 
-    // Superponer imagen
-    const centro = [-3.844051, -73.3432986];
-    const deltaLat = 0.0100;
-    const deltaLng = 0.0120;
-    const imageBounds = [
-        [centro[0] - deltaLat, centro[1] - deltaLng],
-        [centro[0] + deltaLat, centro[1] + deltaLng]
-    ];
-    L.imageOverlay('/img/plano.png', imageBounds, { opacity: 0.85 }).addTo(map);
-    map.setView(centro, 19);
+    // ✅ Función para cargar imágenes superpuestas
+    function cargarImagenesSuperpuestas() {
+        if (!imagenesSuperpuestas || imagenesSuperpuestas.length === 0) {
+            console.log('No hay imágenes superpuestas para cargar');
+            return;
+        }
 
+        console.log('Cargando', imagenesSuperpuestas.length, 'imágenes superpuestas...');
+        
+        imagenesSuperpuestas.forEach(imgData => {
+            try {
+                const anchoLat = parseFloat(imgData.ancho_lat) || 0.0100;
+                const anchoLng = parseFloat(imgData.ancho_lng) || 0.0120;
+                const escala = parseFloat(imgData.escala) || 1.0;
+                const latCentro = parseFloat(imgData.lat_centro);
+                const lngCentro = parseFloat(imgData.lng_centro);
+                const opacidad = parseFloat(imgData.opacidad) || 0.85;
+                
+                const halfLat = (anchoLat * escala) / 2;
+                const halfLng = (anchoLng * escala) / 2;
+                
+                // ✅ DEBUG DETALLADO
+                console.log('📍 Imagen ID:', imgData.id, {
+                    latCentro: latCentro,
+                    lngCentro: lngCentro,
+                    anchoLat: anchoLat,
+                    anchoLng: anchoLng,
+                    escala: escala,
+                    bounds: [
+                        [latCentro - halfLat, lngCentro - halfLng],
+                        [latCentro + halfLat, lngCentro + halfLng]
+                    ],
+                    diferenciaVertical: `±${halfLat}`
+                });
+
+                const bounds = [
+                    [latCentro - halfLat, lngCentro - halfLng],
+                    [latCentro + halfLat, lngCentro + halfLng]
+                ];
+
+                // Cargar la imagen superpuesta
+                const overlay = L.imageOverlay(imgData.url_completa, bounds, {
+                    opacity: opacidad,
+                    interactive: false
+                }).addTo(map);
+
+                // ✅ Forzar z-index y agregar ID visual para debug
+                // ✅ SOLUCIÓN: Forzar z-index MÁS ALTO y posición absoluta
+                overlay.on('add', function() {
+                    const imgElement = overlay.getElement();
+                    if (imgElement) {
+                        // ✅ Z-INDEX MUCHO MÁS ALTO y !important
+                        imgElement.style.zIndex = '9999';
+                        imgElement.style.position = 'absolute';
+                        imgElement.style.pointerEvents = 'none'; // Evitar conflictos
+                        
+                        console.log(`✅ Z-index aplicado a imagen ID ${imgData.id}: 9999`);
+                    }
+                });
+
+                // ✅ También aplicar después de un delay por si acaso
+                setTimeout(() => {
+                    const imgElement = overlay.getElement();
+                    if (imgElement) {
+                        imgElement.style.zIndex = '9999';
+                        imgElement.style.position = 'absolute';
+                        
+                        // ✅ DEBUG: Verificar que mantiene el z-index
+                        console.log(`✅ Verificación imagen ID ${imgData.id}:`, {
+                            zIndex: imgElement.style.zIndex,
+                            position: imgElement.style.position,
+                            display: imgElement.style.display
+                        });
+                    }
+                }, 500);
+                
+            } catch (error) {
+                console.error('Error cargando imagen superpuesta ID:', imgData.id, error);
+            }
+        });
+    }
+
+    // ✅ Cargar imágenes cuando el mapa esté listo
+    map.whenReady(() => {
+        setTimeout(() => {
+            cargarImagenesSuperpuestas();
+        }, 1000);
+    });
+
+    // ✅ EL RESTO DE TU CÓDIGO ORIGINAL SE MANTIENE IGUAL
     // Variables globales
     let lotes = JSON.parse(localStorage.getItem('lotesMapa') || '[]');
     let markers = [];
@@ -140,6 +240,59 @@
         const nuevoNumero = maxNumero + 1;
         return prefijo + nuevoNumero.toString().padStart(3, '0');
     }
+
+    // ... EL RESTO DE TU CÓDIGO ORIGINAL SE MANTIENE EXACTAMENTE IGUAL ...
+
+    // Variables globales
+    // let lotes = JSON.parse(localStorage.getItem('lotesMapa') || '[]');
+    // let markers = [];
+    // let prefijoActual = document.getElementById('prefijoSelect').value;
+
+    // Cargar lotes existentes
+    // const lotesExistentes = @json($lotes);
+    // lotesExistentes.forEach(l => {
+    //     if (l.latitud && l.longitud) {
+    //         const marker = L.marker([l.latitud, l.longitud], {
+    //             draggable: false,
+    //             icon: L.icon({
+    //                 iconUrl: 'https://cdn-icons-png.flaticon.com/512/684/684908.png',
+    //                 iconSize: [25, 25]
+    //             })
+    //         }).addTo(map);
+    //         marker.bindPopup(`<b>${l.codigo}</b><br>Registrado`);
+    //     }
+    // });
+
+    // // ✅ Obtener último número para el prefijo actual
+    // function obtenerUltimoNumero(prefijo) {
+    //     const codigos = lotesExistentes
+    //         .filter(l => l.codigo && l.codigo.startsWith(prefijo))
+    //         .map(l => l.codigo);
+        
+    //     const numeros = codigos.map(c => parseInt(c.substring(1)) || 0);
+    //     return Math.max(0, ...numeros);
+    // }
+
+    // // ✅ Generar código con correlativo dinámico
+    // function generarCodigo(prefijo) {
+    //     // Números existentes en la base de datos
+    //     const numerosBD = lotesExistentes
+    //         .filter(l => l.codigo && l.codigo.startsWith(prefijo))
+    //         .map(l => parseInt(l.codigo.substring(1)) || 0);
+        
+    //     // Números ya generados en esta sesión
+    //     const numerosSesion = lotes
+    //         .filter(l => l.codigo && l.codigo.startsWith(prefijo))
+    //         .map(l => parseInt(l.codigo.substring(1)) || 0);
+        
+    //     // Encontrar el máximo
+    //     const todosNumeros = [...numerosBD, ...numerosSesion];
+    //     const maxNumero = todosNumeros.length > 0 ? Math.max(...todosNumeros) : 0;
+        
+    //     // Generar nuevo código
+    //     const nuevoNumero = maxNumero + 1;
+    //     return prefijo + nuevoNumero.toString().padStart(3, '0');
+    // }
 
     // Manejar cambio de prefijo
     document.getElementById('prefijoSelect').addEventListener('change', function() {

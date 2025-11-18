@@ -90,39 +90,89 @@
 
     <script>
         $(document).ready(function() {
-            const map = L.map('map',{ maxZoom: 19 }).setView([-3.844051, -73.3432986], 19);
+            const mapConfig = @json($mapConfig ?? null);
+
+            // ✅ Valores por defecto en caso de que no haya configuración
+            const latInicial = mapConfig?.lat_map ? parseFloat(mapConfig.lat_map) : -3.844051;
+            const lonInicial = mapConfig?.lon_map ? parseFloat(mapConfig.lon_map) : -73.3432986;
+            const zoomInicial = mapConfig?.actual_zoom_map ? parseInt(mapConfig.actual_zoom_map) : 19;
+            const maxZoom = mapConfig?.max_zoom_map ? parseInt(mapConfig.max_zoom_map) : 19;
+            const minZoom = mapConfig?.min_zoom_map ? parseInt(mapConfig.min_zoom_map) : 15;
+            console.log('🔧 Configuración del mapa cargada:', {
+                latInicial, lonInicial, zoomInicial, maxZoom, minZoom
+            });
+
+            // ✅ Inicializar mapa con valores de la base de datos
+            const map = L.map('map', {
+                maxZoom: maxZoom,
+                minZoom: minZoom
+            }).setView([latInicial, lonInicial], zoomInicial);
 
             var calle = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                maxZoom: 19,
-                minZoom: 15,
+                maxZoom: maxZoom,
+                minZoom: minZoom,
                 attribution: '&copy; OpenStreetMap contributors'
             }).addTo(map);
 
-            // 🗺️ Superponer imagen (plano) centrada en -3.844051, -73.3432986
-            // Coordenadas aproximadas del área de cobertura (ajusta si tu imagen no encaja bien)
-            const centro = [-3.844051, -73.3432986];
 
-            // Calcula un área rectangular alrededor del punto central (en grados)
-            // Aumenta o reduce el delta para ajustar el tamaño de la imagen
-            const deltaLat = 0.0100; // norte-sur
-            const deltaLng = 0.0120; // este-oeste
+            const imagenesSuperpuestas = @json($imagenesSuperpuestas ?? []);
+            function cargarImagenesSuperpuestas() {
+                if (!imagenesSuperpuestas || imagenesSuperpuestas.length === 0) {
+                    console.log('No hay imágenes superpuestas para cargar');
+                    return;
+                }
 
-            const imageBounds = [
-                [centro[0] - deltaLat, centro[1] - deltaLng], // suroeste
-                [centro[0] + deltaLat, centro[1] + deltaLng]  // noreste
-            ];
+                console.log('Cargando', imagenesSuperpuestas.length, 'imágenes superpuestas...');
+                
+                imagenesSuperpuestas.forEach(imgData => {
+                    try {
+                        const anchoLat = parseFloat(imgData.ancho_lat) || 0.0100;
+                        const anchoLng = parseFloat(imgData.ancho_lng) || 0.0120;
+                        const escala = parseFloat(imgData.escala) || 1.0;
+                        const latCentro = parseFloat(imgData.lat_centro);
+                        const lngCentro = parseFloat(imgData.lng_centro);
+                        const opacidad = parseFloat(imgData.opacidad) || 0.85;
+                        
+                        const halfLat = (anchoLat * escala) / 2;
+                        const halfLng = (anchoLng * escala) / 2;
+                        
+                        if (isNaN(latCentro) || isNaN(lngCentro) || isNaN(halfLat) || isNaN(halfLng)) {
+                            console.error('Datos inválidos para imagen ID:', imgData.id);
+                            return;
+                        }
 
-            // Cargar la imagen del plano
-            L.imageOverlay('/img/plano.png', imageBounds, { opacity: 0.85 }).addTo(map);
+                        const bounds = [
+                            [latCentro - halfLat, lngCentro - halfLng],
+                            [latCentro + halfLat, lngCentro + halfLng]
+                        ];
 
-            // Centrar el mapa en el área de la imagen
-            // map.fitBounds(imageBounds);
-            map.setView(centro, 19);
-            //cierre codigo agregado para la imagen
+                        if (bounds.some(coord => coord.some(isNaN))) {
+                            console.error('Bounds inválidos para imagen ID:', imgData.id, bounds);
+                            return;
+                        }
 
+                        // Cargar la imagen superpuesta
+                        L.imageOverlay(imgData.url_completa, bounds, {
+                            opacity: opacidad,
+                            interactive: false // Solo visual, no editable
+                        }).addTo(map);
+                        
+                        console.log('✅ Imagen superpuesta cargada ID:', imgData.id);
+                        
+                    } catch (error) {
+                        console.error('Error cargando imagen superpuesta ID:', imgData.id, error);
+                    }
+                });
+                
+                console.log('✅ Todas las imágenes superpuestas cargadas');
+            }
 
-
-            // L.control.layers({ "Calle": calle, "Satélite": satelite }).addTo(map);
+            // Llamar cuando el mapa esté listo
+            map.whenReady(() => {
+                setTimeout(() => {
+                    cargarImagenesSuperpuestas();
+                }, 1000);
+            });
 
             const drawnItems = new L.FeatureGroup();
             map.addLayer(drawnItems);
@@ -195,7 +245,14 @@
                                 shadowSize: [41, 41]
                             });
 
-                            const marker = L.marker([lote.latitud, lote.longitud], { icon: customIcon }).addTo(drawnItems);
+                            // ✅ CREAR MARCADOR ARRASTRABLE (solo para edición visual)
+                            const marker = L.marker([lote.latitud, lote.longitud], { 
+                                icon: customIcon,
+                                draggable: false  // Inicialmente no arrastrable
+                            }).addTo(drawnItems);
+
+                            // ✅ GUARDAR ID DEL LOTE EN EL MARCADOR
+                            marker._loteId = lote.id;
 
                             marker.bindPopup(`
                                 <b>${lote.codigo}</b><br>${lote.nombre || ''}<br>
@@ -280,6 +337,13 @@
             function actualizarLote(id) {
                 let formData = new FormData($('#loteForm')[0]); 
                 formData.append('_method', 'PUT');
+                
+                // ✅ AGREGAR LATITUD Y LONGITUD ACTUALIZADAS DEL FORMULARIO
+                const latitud = $('#latitud').val();
+                const longitud = $('#longitud').val();
+                formData.append('latitud', latitud);
+                formData.append('longitud', longitud);
+                
                 $.ajax({
                     url: '/lotes/' + id,
                     method: 'POST',
@@ -293,10 +357,27 @@
                             $('#loteForm')[0].reset();
                             $('#lote_id').val('');
                             $('#cancelarBtn').addClass('d-none');
-                            cargarLotes();
-                        } else toastr.error(res.message);
+                            
+                            // ✅ DESACTIVAR ARRASTRE DESPUÉS DE GUARDAR
+                            drawnItems.eachLayer(function(layer) {
+                                if (layer instanceof L.Marker) {
+                                    layer.dragging.disable();
+                                    if (layer._icon) {
+                                        layer._icon.style.boxShadow = '';
+                                        layer._icon.style.border = '';
+                                    }
+                                }
+                            });
+                            
+                            cargarLotes(); // Recargar lotes para actualizar marcadores
+                        } else {
+                            toastr.error(res.message);
+                        }
                     },
-                    error: () => toastr.error('❌ Error al actualizar el lote'),
+                    error: function(xhr) {
+                        console.error('Error al actualizar lote:', xhr.responseText);
+                        toastr.error('❌ Error al actualizar el lote');
+                    }
                 });
             }
 
@@ -304,6 +385,17 @@
                 $('#loteForm')[0].reset();
                 $('#lote_id').val('');
                 $('#cancelarBtn').addClass('d-none');
+                
+                // ✅ DESACTIVAR ARRASTRE AL CANCELAR
+                drawnItems.eachLayer(function(layer) {
+                    if (layer instanceof L.Marker) {
+                        layer.dragging.disable();
+                        if (layer._icon) {
+                            layer._icon.style.boxShadow = '';
+                            layer._icon.style.border = '';
+                        }
+                    }
+                });
             });
 
             // ✏️ Editar lote
@@ -312,6 +404,7 @@
                 $.getJSON(`/api/lotes`, function(lotes) {
                     let lote = lotes.find(l => l.id == id);
                     if (!lote) return;
+                    
                     $('#lote_id').val(lote.id);
                     $('#codigo').val(lote.codigo);
                     $('#nombre').val(lote.nombre);
@@ -326,7 +419,48 @@
                     $('#fondo').val(lote.fondo);
                     $('#coordenadas').val(lote.coordenadas);
                     $('#cancelarBtn').removeClass('d-none');
-                    toastr.info('Editando lote ' + lote.codigo);
+                    
+                    // ✅ HACER ARRASTRABLE SOLO EL MARCADOR QUE SE ESTÁ EDITANDO
+                    drawnItems.eachLayer(function(layer) {
+                        if (layer instanceof L.Marker) {
+                            // Quitar arrastre y resaltado de todos los marcadores
+                            layer.dragging.disable();
+                            if (layer._icon) {
+                                layer._icon.style.boxShadow = '';
+                                layer._icon.style.border = '';
+                            }
+                            
+                            // Activar arrastre y resaltar SOLO el marcador que se está editando
+                            if (layer._loteId == lote.id) {
+                                layer.dragging.enable(); // ✅ HACER ARRASTRABLE
+                                
+                                if (layer._icon) {
+                                    layer._icon.style.boxShadow = '0 0 0 3px yellow, 0 0 10px rgba(255,255,0,0.5)';
+                                    layer._icon.style.border = '2px solid orange';
+                                }
+                                
+                                // ✅ ACTUALIZAR POSICIÓN EN FORMULARIO CUANDO SE ARRASTRA
+                                layer.on('dragend', function(event) {
+                                    const marker = event.target;
+                                    const newLatLng = marker.getLatLng();
+                                    
+                                    // Actualizar campos del formulario
+                                    $('#latitud').val(newLatLng.lat.toFixed(8));
+                                    $('#longitud').val(newLatLng.lng.toFixed(8));
+                                    
+                                    console.log('📍 Posición temporal actualizada:', newLatLng);
+                                });
+                                
+                                // Centrar mapa en el marcador
+                                map.setView(layer.getLatLng(), map.getZoom());
+                                
+                                // Abrir popup
+                                layer.openPopup();
+                            }
+                        }
+                    });
+                    
+                    toastr.info('Editando lote ' + lote.codigo + ' - Arrastra el marcador para cambiar posición y luego guarda');
                 });
             });
 
@@ -347,6 +481,11 @@
                     }
                 });
             });
+
+            
+
+
+
         });
     </script>
 @endsection

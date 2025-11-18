@@ -104,11 +104,11 @@
         <div class="collapse ps-3" id="menuReportes">          
           <a href="{{ route('reportes.ventas') }}" class="nav-link active">📊 R. Ventas</a>
           {{-- <a href="#" class="nav-link active">📊 R. Ventas</a> --}}
-          <a href="#" class="nav-link">🛒 R. Compras</a>
+          {{-- <a href="#" class="nav-link">🛒 R. Compras</a>
           <a href="#" class="nav-link">📈 R. Financiero</a>
           <a href="#" class="nav-link">🏘️ R. Lotes</a>
           <a href="#" class="nav-link">👥 R. Clientes</a>
-          <a href="#" class="nav-link">🏭 R. Proveedores</a>
+          <a href="#" class="nav-link">🏭 R. Proveedores</a> --}}
         </div>
 
       @elseif(auth()->user()->role === 'vendedor')
