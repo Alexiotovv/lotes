@@ -76,6 +76,10 @@ Route::middleware(['auth', 'vendedor'])->group(function () {
     // Eliminar cronograma
     Route::delete('/ventas/{venta}/eliminar-cronograma', [VentaController::class, 'eliminarCronograma'])->name('ventas.eliminar.cronograma');
 
+    //Imagenes superpuestas
+    Route::post('/mapa/imagen-superpuesta/guardar', [MapImageController::class, 'guardarImagenSuperpuesta'])->name('imagen.superpuesta.guardar');
+    Route::delete('/mapa/imagen-superpuesta/{id}', [MapImageController::class, 'eliminarImagenSuperpuesta'])->name('imagen.superpuesta.eliminar');
+    Route::put('/mapa/imagen-superpuesta/actualizar/{id}', [MapImageController::class, 'actualizarImagenSuperpuesta'])->name('imagen.superpuesta.actualizar');
 
 });
 
@@ -85,11 +89,7 @@ Route::middleware(['auth', 'admin'])->group(function () {
     //Imagen Posicionada
     Route::get('/mapa/editar', [MapImageController::class, 'index'])->name('map.edit');
     Route::post('/mapa/actualizar-posicion', [MapImageController::class, 'actualizarPosicion'])->name('mapa.actualizar.posicion');
-    
-    Route::post('/mapa/imagen-superpuesta/guardar', [MapImageController::class, 'guardarImagenSuperpuesta'])->name('imagen.superpuesta.guardar');
-    Route::delete('/mapa/imagen-superpuesta/{id}', [MapImageController::class, 'eliminarImagenSuperpuesta'])->name('imagen.superpuesta.eliminar');
-    Route::put('/mapa/imagen-superpuesta/actualizar/{id}', [MapImageController::class, 'actualizarImagenSuperpuesta'])->name('imagen.superpuesta.actualizar');
-    
+
     //Contratos
     Route::get('/contratos', [ContratoController::class, 'index'])->name('contratos.index');
     Route::get('/contratos/{contrato}', [ContratoController::class, 'ver'])->name('contratos.ver');
