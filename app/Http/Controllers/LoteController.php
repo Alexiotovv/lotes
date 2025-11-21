@@ -67,14 +67,11 @@ class LoteController extends Controller
     {
         try {
             \Log::info('🔍 INICIANDO ACTUALIZACIÓN - Lote ID: ' . $lote->id);
+            \Log::info('Código recibido: ' . $request->codigo);
+            \Log::info('Código actual en BD: ' . $lote->codigo);
 
+            // ✅ SOLUCIÓN DEFINITIVA: Aplicar unique solo si el código cambió
             $rules = [
-                'codigo' => [
-                    'required',
-                    'string',
-                    'max:50',
-                    Rule::unique('lotes')->ignore($lote->id)
-                ],
                 'nombre' => 'nullable|string|max:100',
                 'area_m2' => 'nullable|numeric',
                 'frente' => 'nullable|numeric',
@@ -90,33 +87,33 @@ class LoteController extends Controller
                 'descripcion' => 'nullable|string',
             ];
 
+            // ✅ Aplicar regla unique solo si el código realmente cambió
+            if ($request->codigo !== $lote->codigo) {
+                $rules['codigo'] = 'required|string|max:50|unique:lotes,codigo';
+                \Log::info('🔀 Código cambió, aplicando regla unique');
+            } else {
+                $rules['codigo'] = 'required|string|max:50';
+                \Log::info('✅ Mismo código, omitiendo regla unique');
+            }
+
             $validated = $request->validate($rules);
-            
-            \Log::info('✅ Validación pasada');
+
+            \Log::info('✅ Validación pasada, actualizando...');
             $lote->update($validated);
-            \Log::info('✅ Lote actualizado');
+            \Log::info('✅ Lote actualizado correctamente');
 
             return response()->json([
                 'success' => true, 
-                'message' => '✅ Lote actualizado correctamente'
+                'message' => '✅ Lote actualizado correctamente',
+                'data' => $lote
             ]);
 
         } catch (\Illuminate\Validation\ValidationException $e) {
             \Log::error('❌ Error validación: ' . json_encode($e->errors()));
-            // ✅ DEBUG ADICIONAL: Verificar qué está pasando con la regla unique
-            $existingLote = Lote::where('codigo', $request->codigo)->first();
-            \Log::info('🔍 Lote existente con mismo código: ' . ($existingLote ? $existingLote->id : 'Ninguno'));
-            
             return response()->json([
                 'success' => false,
                 'message' => '❌ Error de validación',
                 'errors' => $e->errors(),
-                'debug' => [ // ✅ Información de debug para el frontend
-                    'current_lote_id' => $lote->id,
-                    'codigo_recibido' => $request->codigo,
-                    'codigo_actual' => $lote->codigo,
-                    'same_codigo' => $request->codigo === $lote->codigo
-                ]
             ], 422);
         } catch (\Exception $e) {
             \Log::error('❌ Error general: ' . $e->getMessage());
