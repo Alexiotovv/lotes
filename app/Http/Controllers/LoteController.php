@@ -64,6 +64,11 @@ class LoteController extends Controller
 
     public function update(Request $request, Lote $lote)
     {
+            \Log::info('🔍 INICIANDO ACTUALIZACIÓN');
+            \Log::info('Lote ID: ' . $lote->id);
+            \Log::info('Código recibido: ' . $request->codigo);
+            \Log::info('Código actual en BD: ' . $lote->codigo);
+            \Log::info('Request method: ' . $request->method());
         $validated = $request->validate([
             // 'codigo' => 'required|string|max:50|unique:lotes,codigo,' . $lote->id,
             'codigo' => 'required|string|max:50|unique:lotes,codigo,' . $lote->id . ',id',
