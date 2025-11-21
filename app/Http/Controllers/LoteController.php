@@ -66,11 +66,6 @@ class LoteController extends Controller
     public function update(Request $request, Lote $lote)
     {
         try {
-            \Log::info('🔍 INICIANDO ACTUALIZACIÓN - Lote ID: ' . $lote->id);
-            \Log::info('Código recibido: ' . $request->codigo);
-            \Log::info('Código actual en BD: ' . $lote->codigo);
-
-            // ✅ SOLUCIÓN DEFINITIVA: Aplicar unique solo si el código cambió
             $rules = [
                 'nombre' => 'nullable|string|max:100',
                 'area_m2' => 'nullable|numeric',
