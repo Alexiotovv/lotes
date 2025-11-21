@@ -541,19 +541,63 @@
             });
 
             // 🗑️ Eliminar lote
+            // $(document).on('click', '.eliminarLote', function() {
+            //     const id = $(this).data('id');
+            //     if (!confirm('¿Eliminar este lote?')) return;
+            //     $.ajax({
+            //         url: `/lotes/${id}`,
+            //         type: 'DELETE',
+            //         headers: { 'X-CSRF-TOKEN': '{{ csrf_token() }}' },
+            //         success: function(res) {
+            //             toastr.success(res.message);
+            //             cargarLotes();
+            //         },
+            //         error: function() {
+            //             toastr.error('Error al eliminar el lote');
+            //         }
+            //     });
+            // });
+
+            // 🗑️ Eliminar lote - Versión mejorada
             $(document).on('click', '.eliminarLote', function() {
                 const id = $(this).data('id');
-                if (!confirm('¿Eliminar este lote?')) return;
+                const codigo = $(this).closest('.lote-item').find('.codigo').text() || id;
+                
+                if (!confirm(`¿Estás seguro de eliminar el lote ${codigo}?`)) return;
+                
                 $.ajax({
                     url: `/lotes/${id}`,
                     type: 'DELETE',
-                    headers: { 'X-CSRF-TOKEN': '{{ csrf_token() }}' },
-                    success: function(res) {
-                        toastr.success(res.message);
-                        cargarLotes();
+                    headers: { 
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                        'Accept': 'application/json'
                     },
-                    error: function() {
-                        toastr.error('Error al eliminar el lote');
+                    success: function(res) {
+                        if (res.success) {
+                            toastr.success(res.message);
+                            cargarLotes();
+                        } else {
+                            toastr.error(res.message || 'Error al eliminar el lote');
+                        }
+                    },
+                    error: function(xhr, status, error) {
+                        console.error('❌ Error al eliminar:', {
+                            status: xhr.status,
+                            statusText: xhr.statusText,
+                            responseText: xhr.responseText,
+                            error: error
+                        });
+                        
+                        if (xhr.status === 404) {
+                            toastr.error('Lote no encontrado');
+                        } else if (xhr.status === 422) {
+                            const response = JSON.parse(xhr.responseText);
+                            toastr.error(response.message || 'No se puede eliminar el lote');
+                        } else if (xhr.status === 500) {
+                            toastr.error('Error del servidor al eliminar el lote');
+                        } else {
+                            toastr.error('Error al eliminar el lote');
+                        }
                     }
                 });
             });

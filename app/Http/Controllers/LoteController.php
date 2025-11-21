@@ -145,9 +145,52 @@ class LoteController extends Controller
     // }
 
 
+    // public function destroy(Lote $lote)
+    // {
+    //     $lote->delete();
+    //     return response()->json(['success' => true, 'message' => '🗑️ Lote eliminado correctamente']);
+    // }
+
     public function destroy(Lote $lote)
     {
-        $lote->delete();
-        return response()->json(['success' => true, 'message' => '🗑️ Lote eliminado correctamente']);
+        \Log::info('🗑️ Intentando eliminar lote ID: ' . $lote->id);
+        \Log::info('Lote a eliminar: ' . $lote->codigo);
+        
+        try {
+            // ✅ Verificar si el lote existe antes de eliminar
+            if (!$lote->exists) {
+                \Log::error('❌ Lote no existe');
+                return response()->json([
+                    'success' => false, 
+                    'message' => 'Lote no encontrado'
+                ], 404);
+            }
+
+            // ✅ Verificar relaciones antes de eliminar
+            if ($lote->venta()->exists()) {
+                \Log::warning('⚠️ Lote tiene ventas asociadas, no se puede eliminar');
+                return response()->json([
+                    'success' => false, 
+                    'message' => 'No se puede eliminar el lote porque tiene ventas asociadas'
+                ], 422);
+            }
+
+            $lote->delete();
+            
+            \Log::info('✅ Lote eliminado correctamente: ' . $lote->codigo);
+            
+            return response()->json([
+                'success' => true, 
+                'message' => '🗑️ Lote eliminado correctamente'
+            ]);
+
+        } catch (\Exception $e) {
+            \Log::error('❌ Error al eliminar lote: ' . $e->getMessage());
+            return response()->json([
+                'success' => false, 
+                'message' => '❌ Error al eliminar el lote: ' . $e->getMessage()
+            ], 500);
+        }
     }
+
 }
