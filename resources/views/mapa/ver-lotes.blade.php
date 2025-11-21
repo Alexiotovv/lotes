@@ -231,6 +231,8 @@
         if (estadoLote === 'disponible') {
             const frente = parseFloat(lote.frente) || 0;
             const fondo = parseFloat(lote.fondo) || 0;
+            const izquierda = parseFloat(lote.lado_izquierdo) || 0;
+            const derecha = parseFloat(lote.lado_derecho) || 0;
             const area = parseFloat(lote.area_m2) || 0;
             const precioM2 = parseFloat(lote.precio_m2) || 0;
             const precioTotal = area * precioM2;
@@ -241,11 +243,11 @@
 
             contenido = `
                 <div class="text-center mb-2" style="color: #ff9900; font-weight: bold;">
-                    FREnte Y FONDO ${formatoMedida(frente)} x ${formatoMedida(fondo)} MTS2
+                    Frente: ${formatoMedida(frente)} Fondo: ${formatoMedida(fondo)} L.Izquierdo: ${formatoMedida(izquierda)} L.Derecho: ${formatoMedida(derecha)}
                 </div>
                 
                 <div class="section-title">
-                    LOTES DE ${formatoMedida(area)} MTS CUADRADOS
+                    LOTE DE ${formatoMedida(area)} ✅ m²
                 </div>
                 
                 <div class="text-center my-3" style="font-size: 24px; font-weight: bold;">
