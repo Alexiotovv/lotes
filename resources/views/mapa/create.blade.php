@@ -342,7 +342,7 @@
             return;
         }
 
-        if (lotes.length >= 100) {
+        if (lotes.length >= 1000) {
             alert('⚠️ Límite de 100 lotes alcanzado.');
             return;
         }
