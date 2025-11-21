@@ -76,6 +76,9 @@ Route::middleware(['auth', 'vendedor'])->group(function () {
     // Eliminar cronograma
     Route::delete('/ventas/{venta}/eliminar-cronograma', [VentaController::class, 'eliminarCronograma'])->name('ventas.eliminar.cronograma');
 
+    //Ventas-GenerarCronograma
+    Route::get('ventas/{venta}/cronograma', [VentaController::class, 'cronograma'])->name('ventas.cronograma');
+
     //Imagenes superpuestas
     Route::post('/mapa/imagen-superpuesta/guardar', [MapImageController::class, 'guardarImagenSuperpuesta'])->name('imagen.superpuesta.guardar');
     Route::delete('/mapa/imagen-superpuesta/{id}', [MapImageController::class, 'eliminarImagenSuperpuesta'])->name('imagen.superpuesta.eliminar');
@@ -118,7 +121,7 @@ Route::middleware(['auth', 'admin'])->group(function () {
 
     // Venta (CRUD completo)
     Route::resource('ventas', VentaController::class)->except(['create','index','store','edit','update']);
-    Route::get('ventas/{venta}/cronograma', [VentaController::class, 'cronograma'])->name('ventas.cronograma');
+    
 
 
     // Editar Imagen en Mapa
