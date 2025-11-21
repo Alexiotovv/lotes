@@ -335,51 +335,127 @@
             }
 
             function actualizarLote(id) {
-                let formData = new FormData($('#loteForm')[0]); 
-                formData.append('_method', 'PUT');
+                const data = {
+                    _token: '{{ csrf_token() }}',
+                    _method: 'PUT',
+                    codigo: $('#codigo').val(),
+                    nombre: $('#nombre').val(),
+                    area_m2: $('#area_m2').val(),
+                    precio_m2: $('#precio_m2').val(),
+                    latitud: $('#latitud').val(),
+                    longitud: $('#longitud').val(),
+                    estado_lote_id: $('#estado_lote_id').val(),
+                    frente: $('#frente').val(),
+                    lado_izquierdo: $('#lado_izquierdo').val(),
+                    lado_derecho: $('#lado_derecho').val(),
+                    fondo: $('#fondo').val(),
+                    coordenadas: $('#coordenadas').val()
+                };
                 
-                // ✅ AGREGAR LATITUD Y LONGITUD ACTUALIZADAS DEL FORMULARIO
-                const latitud = $('#latitud').val();
-                const longitud = $('#longitud').val();
-                formData.append('latitud', latitud);
-                formData.append('longitud', longitud);
+                console.log('📤 Actualizando lote:', data);
                 
                 $.ajax({
                     url: '/lotes/' + id,
                     method: 'POST',
-                    data: formData,
-                    processData: false,
-                    contentType: false,
-                    headers: { 'X-CSRF-TOKEN': '{{ csrf_token() }}' },
+                    data: data,
+                    dataType: 'json',
                     success: function(res) {
                         if (res.success) {
                             toastr.success(res.message);
-                            $('#loteForm')[0].reset();
-                            $('#lote_id').val('');
-                            $('#cancelarBtn').addClass('d-none');
-                            
-                            // ✅ DESACTIVAR ARRASTRE DESPUÉS DE GUARDAR
-                            drawnItems.eachLayer(function(layer) {
-                                if (layer instanceof L.Marker) {
-                                    layer.dragging.disable();
-                                    if (layer._icon) {
-                                        layer._icon.style.boxShadow = '';
-                                        layer._icon.style.border = '';
-                                    }
-                                }
-                            });
-                            
-                            cargarLotes(); // Recargar lotes para actualizar marcadores
+                            resetForm();
+                            cargarLotes();
                         } else {
                             toastr.error(res.message);
                         }
                     },
                     error: function(xhr) {
-                        console.error('Error al actualizar lote:', xhr.responseText);
-                        toastr.error('❌ Error al actualizar el lote');
+                        console.error('❌ Error completo:', xhr);
+                        
+                        if (xhr.status === 422) {
+                            const response = xhr.responseJSON;
+                            const errors = response.errors;
+                            
+                            // ✅ Mostrar información de debug si está disponible
+                            if (response.debug) {
+                                console.log('🐛 Debug info:', response.debug);
+                                if (response.debug.same_codigo) {
+                                    toastr.error('ERROR: Estás intentando actualizar con el mismo código que ya tiene el lote');
+                                }
+                            }
+                            
+                            for (const [field, errorMessages] of Object.entries(errors)) {
+                                errorMessages.forEach(msg => toastr.error(`${field}: ${msg}`));
+                            }
+                        } else {
+                            toastr.error('❌ Error al actualizar el lote');
+                        }
                     }
                 });
             }
+
+            function resetForm() {
+                $('#loteForm')[0].reset();
+                $('#lote_id').val('');
+                $('#cancelarBtn').addClass('d-none');
+                
+                // Desactivar arrastre
+                drawnItems.eachLayer(function(layer) {
+                    if (layer instanceof L.Marker) {
+                        layer.dragging.disable();
+                        if (layer._icon) {
+                            layer._icon.style.boxShadow = '';
+                            layer._icon.style.border = '';
+                        }
+                    }
+                });
+            }
+
+            // function actualizarLote(id) {
+            //     let formData = new FormData($('#loteForm')[0]); 
+            //     formData.append('_method', 'PUT');
+                
+            //     // ✅ AGREGAR LATITUD Y LONGITUD ACTUALIZADAS DEL FORMULARIO
+            //     const latitud = $('#latitud').val();
+            //     const longitud = $('#longitud').val();
+            //     formData.append('latitud', latitud);
+            //     formData.append('longitud', longitud);
+                
+            //     $.ajax({
+            //         url: '/lotes/' + id,
+            //         method: 'POST',
+            //         data: formData,
+            //         processData: false,
+            //         contentType: false,
+            //         headers: { 'X-CSRF-TOKEN': '{{ csrf_token() }}' },
+            //         success: function(res) {
+            //             if (res.success) {
+            //                 toastr.success(res.message);
+            //                 $('#loteForm')[0].reset();
+            //                 $('#lote_id').val('');
+            //                 $('#cancelarBtn').addClass('d-none');
+                            
+            //                 // ✅ DESACTIVAR ARRASTRE DESPUÉS DE GUARDAR
+            //                 drawnItems.eachLayer(function(layer) {
+            //                     if (layer instanceof L.Marker) {
+            //                         layer.dragging.disable();
+            //                         if (layer._icon) {
+            //                             layer._icon.style.boxShadow = '';
+            //                             layer._icon.style.border = '';
+            //                         }
+            //                     }
+            //                 });
+                            
+            //                 cargarLotes(); // Recargar lotes para actualizar marcadores
+            //             } else {
+            //                 toastr.error(res.message);
+            //             }
+            //         },
+            //         error: function(xhr) {
+            //             console.error('Error al actualizar lote:', xhr.responseText);
+            //             toastr.error('❌ Error al actualizar el lote');
+            //         }
+            //     });
+            // }
 
             $('#cancelarBtn').on('click', function() {
                 $('#loteForm')[0].reset();
