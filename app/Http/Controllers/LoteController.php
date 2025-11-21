@@ -24,8 +24,7 @@ class LoteController extends Controller
     {
         try {
             $validated = $request->validate([
-                // 'codigo' => 'required|string|max:50|unique:lotes,codigo',
-                'codigo' => 'required|string|max:50|unique:lotes,codigo,' . $lote->id . ',id',
+                'codigo' => 'required|string|max:50|unique:lotes,codigo',
                 'nombre' => 'nullable|string|max:100',
                 'area_m2' => 'nullable|numeric',
                 'frente' => 'nullable|numeric',
@@ -37,6 +36,7 @@ class LoteController extends Controller
                 'longitud' => 'nullable|numeric',
                 'orientacion' => 'nullable|string|max:50',
                 'precio_m2' => 'nullable|numeric',
+                
                 'estado_lote_id' => 'required|exists:estado_lotes,id',
                 'descripcion' => 'nullable|string',
             ]);
@@ -65,7 +65,8 @@ class LoteController extends Controller
     public function update(Request $request, Lote $lote)
     {
         $validated = $request->validate([
-            'codigo' => 'required|string|max:50|unique:lotes,codigo,' . $lote->id,
+            // 'codigo' => 'required|string|max:50|unique:lotes,codigo,' . $lote->id,
+            'codigo' => 'required|string|max:50|unique:lotes,codigo,' . $lote->id . ',id',
             'nombre' => 'nullable|string|max:100',
             'area_m2' => 'nullable|numeric',
             'frente' => 'nullable|numeric',
