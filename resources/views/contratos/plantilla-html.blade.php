@@ -63,6 +63,7 @@
             text-align: center;
             margin-top: 50px;
             font-size: 12px;
+            padding-top: 450px
         }
 
          button:hover {
@@ -208,7 +209,7 @@
             <li>EL COMPRADOR AL RECEPCIONAR LA ENTREGA DEL LOTE SE HACE RESPONSABLE DE LA 
                 CONSERVACION Y CUIDADO DE SU PERIMETRO, ASI MISMO SE HACE RESPONSABLE DE 
                 RECORDAR LA UBICACIÓN DE SU LOTE Y ASUMIR LOS IMPUESTOS PREDIALES MUNICIPALES, 
-                Pese a que este aun figure a nombre del vendedor.=================</li>
+                PESE A QUE ESTE AÚN FIGURE A NOMBRE DEL VENDEDOR.=================</li>
             <li>EL PRESENTE CONTRATO TOMARA VIGENCIA EN EL MOMENTO EN QUE LAS PARTES PROCEDAN 
                 A FIRMARLOS.==================</li>
         </ol>

@@ -240,7 +240,7 @@
             @foreach ($rows as $r)
             <tr>
                 <td class="nro">{{ $r['nro_cuota'] }}</td>
-                <td class="fecha">{{ $r['fecha_pago'] }}</td>
+                <td class="fecha">{{ date('Y-m-d', strtotime($r['fecha_pago'])) }}</td>
                 <td class="saldo">{{ $r['saldo'] }}</td>
                 <td class="interes">{{ $r['interes'] }}</td>
                 <td class="amortizacion">{{ $r['amortizacion'] }}</td>

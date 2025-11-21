@@ -149,7 +149,7 @@
            <strong>Total Venta:</strong> S/ {{ number_format($venta->lote->area_m2 * $venta->lote->precio_m2, 2) }}</p>
         <p><strong>N° Cuotas:</strong> {{ $venta->numero_cuotas }}</p>
     </div>
-
+    <h3>Pagos Realizados</h3>
     <table>
         <thead>
             <tr>
@@ -164,7 +164,7 @@
             <!-- Cuota inicial -->
             <tr>
                 <td>-</td>
-                <td class="left">{{ $venta->created_at->format('d/m/Y') }}</td>
+                <td class="left">{{ $venta->created_at->format('d-m-Y') }}</td>
                 <td class="left">INICIAL</td>
                 <td>S/ {{ number_format($venta->inicial, 2) }}</td>
                 <td>S/ {{ number_format($venta->monto_financiar, 2) }}</td>
@@ -181,7 +181,7 @@
                 @endphp
                 <tr>
                     <td>{{ $cronograma->nro_cuota }}</td>
-                    <td class="left">{{ $cronograma->fecha_pago }}</td>
+                    <td class="left">{{ $cronograma->fecha_pago->format('d-m-Y') }}</td>
                     <td class="left">CUOTA</td>
                     <td>S/ {{ number_format($pagoTotal, 2) }}</td>
                     <td>S/ {{ number_format(max(0, $saldo), 2) }}</td>

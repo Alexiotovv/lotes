@@ -55,7 +55,7 @@
                 <td>{{ $v->cliente->nombre_cliente }}</td>
                 <td>{{$v->lote->codigo}}</td>
                 <td>{{ $v->metodopago->nombre }}</td>
-                <td>{{ $v->fecha_pago }}</td>
+                <td>{{ $v->fecha_pago->format('Y-m-d') }}</td>
                 <td>{{ $v->created_at }}</td>
                 <td>{{ number_format($v->inicial, 2) }}</td>
                 <td>{{ $v->tasa_interes * 100 }}</td>
