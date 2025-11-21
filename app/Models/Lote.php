@@ -25,6 +25,8 @@ class Lote extends Model
         'fondo',
         'frente',
     ];
+    
+
 
 
     public function estadoLote()

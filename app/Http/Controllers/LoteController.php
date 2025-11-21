@@ -36,7 +36,7 @@ class LoteController extends Controller
                 'longitud' => 'nullable|numeric',
                 'orientacion' => 'nullable|string|max:50',
                 'precio_m2' => 'nullable|numeric',
-                'precio_total' => 'nullable|numeric',
+                // 'precio_total' => 'nullable|numeric',
                 'estado_lote_id' => 'required|exists:estado_lotes,id',
                 'descripcion' => 'nullable|string',
             ]);
@@ -77,7 +77,7 @@ class LoteController extends Controller
             'longitud' => 'nullable|numeric',
             'orientacion' => 'nullable|string|max:50',
             'precio_m2' => 'nullable|numeric',
-            'precio_total' => 'nullable|numeric',
+            // 'precio_total' => 'nullable|numeric',
             'estado_lote_id' => 'required|exists:estado_lotes,id',
             'descripcion' => 'nullable|string',
         ]);
