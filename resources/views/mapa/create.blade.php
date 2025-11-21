@@ -190,13 +190,13 @@
     });
 
     // ✅ EL RESTO DE TU CÓDIGO ORIGINAL SE MANTIENE IGUAL
-    // Variables globales
-    let lotes = JSON.parse(localStorage.getItem('lotesMapa') || '[]');
+    // ✅ SEPARAR: Lotes existentes (BD) vs Lotes nuevos (por guardar)
+    let lotesExistentes = @json($lotes); // Estos ya están en BD
+    let lotesNuevos = JSON.parse(localStorage.getItem('lotesMapa') || '[]'); // Estos son nuevos
     let markers = [];
     let prefijoActual = document.getElementById('prefijoSelect').value;
 
-    // Cargar lotes existentes
-    const lotesExistentes = @json($lotes);
+    // ✅ Cargar solo lotes existentes en el mapa (solo visual)
     lotesExistentes.forEach(l => {
         if (l.latitud && l.longitud) {
             const marker = L.marker([l.latitud, l.longitud], {
@@ -207,30 +207,27 @@
                 })
             }).addTo(map);
             marker.bindPopup(`<b>${l.codigo}</b><br>Registrado`);
+            // ✅ NO agregar a lotesNuevos - solo es visual
         }
     });
 
-    // ✅ Obtener último número para el prefijo actual
-    function obtenerUltimoNumero(prefijo) {
-        const codigos = lotesExistentes
-            .filter(l => l.codigo && l.codigo.startsWith(prefijo))
-            .map(l => l.codigo);
-        
-        const numeros = codigos.map(c => parseInt(c.substring(1)) || 0);
-        return Math.max(0, ...numeros);
-    }
-
-    // ✅ Generar código con correlativo dinámico
+    // ✅ Generar código con correlativo dinámico (SOLO para nuevos)
     function generarCodigo(prefijo) {
         // Números existentes en la base de datos
         const numerosBD = lotesExistentes
             .filter(l => l.codigo && l.codigo.startsWith(prefijo))
-            .map(l => parseInt(l.codigo.substring(1)) || 0);
+            .map(l => {
+                const match = l.codigo.match(new RegExp(`^${prefijo}(\\d+)$`));
+                return match ? parseInt(match[1]) : 0;
+            });
         
-        // Números ya generados en esta sesión
-        const numerosSesion = lotes
+        // Números ya generados en esta sesión (solo los nuevos)
+        const numerosSesion = lotesNuevos
             .filter(l => l.codigo && l.codigo.startsWith(prefijo))
-            .map(l => parseInt(l.codigo.substring(1)) || 0);
+            .map(l => {
+                const match = l.codigo.match(new RegExp(`^${prefijo}(\\d+)$`));
+                return match ? parseInt(match[1]) : 0;
+            });
         
         // Encontrar el máximo
         const todosNumeros = [...numerosBD, ...numerosSesion];
@@ -241,148 +238,77 @@
         return prefijo + nuevoNumero.toString().padStart(3, '0');
     }
 
-    // ... EL RESTO DE TU CÓDIGO ORIGINAL SE MANTIENE EXACTAMENTE IGUAL ...
-
-    // Variables globales
-    // let lotes = JSON.parse(localStorage.getItem('lotesMapa') || '[]');
-    // let markers = [];
-    // let prefijoActual = document.getElementById('prefijoSelect').value;
-
-    // Cargar lotes existentes
-    // const lotesExistentes = @json($lotes);
-    // lotesExistentes.forEach(l => {
-    //     if (l.latitud && l.longitud) {
-    //         const marker = L.marker([l.latitud, l.longitud], {
-    //             draggable: false,
-    //             icon: L.icon({
-    //                 iconUrl: 'https://cdn-icons-png.flaticon.com/512/684/684908.png',
-    //                 iconSize: [25, 25]
-    //             })
-    //         }).addTo(map);
-    //         marker.bindPopup(`<b>${l.codigo}</b><br>Registrado`);
-    //     }
-    // });
-
-    // // ✅ Obtener último número para el prefijo actual
-    // function obtenerUltimoNumero(prefijo) {
-    //     const codigos = lotesExistentes
-    //         .filter(l => l.codigo && l.codigo.startsWith(prefijo))
-    //         .map(l => l.codigo);
-        
-    //     const numeros = codigos.map(c => parseInt(c.substring(1)) || 0);
-    //     return Math.max(0, ...numeros);
-    // }
-
-    // // ✅ Generar código con correlativo dinámico
-    // function generarCodigo(prefijo) {
-    //     // Números existentes en la base de datos
-    //     const numerosBD = lotesExistentes
-    //         .filter(l => l.codigo && l.codigo.startsWith(prefijo))
-    //         .map(l => parseInt(l.codigo.substring(1)) || 0);
-        
-    //     // Números ya generados en esta sesión
-    //     const numerosSesion = lotes
-    //         .filter(l => l.codigo && l.codigo.startsWith(prefijo))
-    //         .map(l => parseInt(l.codigo.substring(1)) || 0);
-        
-    //     // Encontrar el máximo
-    //     const todosNumeros = [...numerosBD, ...numerosSesion];
-    //     const maxNumero = todosNumeros.length > 0 ? Math.max(...todosNumeros) : 0;
-        
-    //     // Generar nuevo código
-    //     const nuevoNumero = maxNumero + 1;
-    //     return prefijo + nuevoNumero.toString().padStart(3, '0');
-    // }
-
-    // Manejar cambio de prefijo
-    document.getElementById('prefijoSelect').addEventListener('change', function() {
-        prefijoActual = this.value;
-    });
-
-    // Guardar nuevo prefijo
-    document.getElementById('guardarPrefijoBtn').addEventListener('click', function() {
-        const input = document.getElementById('nuevoPrefijoInput');
-        const error = document.getElementById('errorPrefijo');
-        const valor = input.value.trim().toUpperCase();
-
-        if (!valor || !/^[A-Z]$/.test(valor)) {
-            error.textContent = 'Ingrese una letra válida (A-Z)';
-            error.style.display = 'block';
-            return;
-        }
-
-        // Verificar si ya existe
-        const select = document.getElementById('prefijoSelect');
-        if (Array.from(select.options).some(opt => opt.value === valor)) {
-            error.textContent = 'Este prefijo ya existe';
-            error.style.display = 'block';
-            return;
-        }
-
-        // Agregar al select
-        const option = document.createElement('option');
-        option.value = valor;
-        option.textContent = valor;
-        select.appendChild(option);
-        select.value = valor;
-        prefijoActual = valor;
-
-        // Limpiar y cerrar
-        input.value = '';
-        error.style.display = 'none';
-        bootstrap.Modal.getInstance(document.getElementById('modalNuevoPrefijo')).hide();
-    });
-
-    // Agregar lote al hacer clic
+    // ✅ Agregar lote al hacer clic (SOLO a lotesNuevos)
     map.on('click', function(e) {
-        // ✅ Validar que haya un prefijo seleccionado
         const selectPrefijo = document.getElementById('prefijoSelect');
         if (!selectPrefijo.value) {
             alert('⚠️ Primero debe seleccionar un prefijo de lote.');
             return;
         }
 
-        if (lotes.length >= 1000) {
-            alert('⚠️ Límite de 100 lotes alcanzado.');
+        if (lotesNuevos.length >= 100) { // Reducido a 100 por seguridad
+            alert('⚠️ Límite de 100 lotes nuevos alcanzado.');
             return;
         }
 
-        const codigo = generarCodigo(selectPrefijo.value); // ← usar el valor actual
+        const codigo = generarCodigo(selectPrefijo.value);
         const lat = e.latlng.lat.toFixed(6);
         const lng = e.latlng.lng.toFixed(6);
+        
+        // ✅ SOLO agregar a lotesNuevos
         const lote = { codigo, latitud: lat, longitud: lng };
-        lotes.push(lote);
-        localStorage.setItem('lotesMapa', JSON.stringify(lotes));
+        lotesNuevos.push(lote);
+        localStorage.setItem('lotesMapa', JSON.stringify(lotesNuevos));
 
-        const marker = L.marker([lat, lng], { draggable: true }).addTo(map);
-        marker.bindPopup(`<b>${codigo}</b><br>(${lat}, ${lng})<br><i>Clic para eliminar</i>`).openPopup();
+        const marker = L.marker([lat, lng], { 
+            draggable: true,
+            icon: L.icon({ // ✅ Icono diferente para nuevos lotes
+                iconUrl: 'https://cdn-icons-png.flaticon.com/512/684/684908.png',
+                iconSize: [25, 25]
+            })
+        }).addTo(map);
+        
+        marker.bindPopup(`
+            <b>${codigo}</b><br>
+            (${lat}, ${lng})<br>
+            <span style="color: green;">🆕 NUEVO - No guardado</span><br>
+            <i>Clic para eliminar</i>
+        `).openPopup();
+        
         markers.push(marker);
 
-        // Eliminar marcador
+        // ✅ Eliminar marcador (solo de lotesNuevos)
         marker.on('click', function() {
             if (confirm(`¿Eliminar el marcador ${codigo}?`)) {
-                const index = lotes.findIndex(l => l.codigo === codigo);
-                if (index !== -1) lotes.splice(index, 1);
-                localStorage.setItem('lotesMapa', JSON.stringify(lotes));
+                const index = lotesNuevos.findIndex(l => l.codigo === codigo);
+                if (index !== -1) {
+                    lotesNuevos.splice(index, 1);
+                    localStorage.setItem('lotesMapa', JSON.stringify(lotesNuevos));
+                }
                 map.removeLayer(marker);
                 markers = markers.filter(m => m !== marker);
             }
         });
 
-        // Mover marcador
+        // ✅ Mover marcador (solo actualizar lotesNuevos)
         marker.on('dragend', function(event) {
             const { lat, lng } = event.target.getLatLng();
-            const index = lotes.findIndex(l => l.codigo === codigo);
+            const index = lotesNuevos.findIndex(l => l.codigo === codigo);
             if (index !== -1) {
-                lotes[index].latitud = lat.toFixed(6);
-                lotes[index].longitud = lng.toFixed(6);
-                localStorage.setItem('lotesMapa', JSON.stringify(lotes));
+                lotesNuevos[index].latitud = lat.toFixed(6);
+                lotesNuevos[index].longitud = lng.toFixed(6);
+                localStorage.setItem('lotesMapa', JSON.stringify(lotesNuevos));
             }
-            marker.setPopupContent(`<b>${codigo}</b><br>(${lat.toFixed(6)}, ${lng.toFixed(6)})<br><i>Clic para eliminar</i>`);
+            marker.setPopupContent(`
+                <b>${codigo}</b><br>
+                (${lat.toFixed(6)}, ${lng.toFixed(6)})<br>
+                <span style="color: green;">🆕 NUEVO - No guardado</span><br>
+                <i>Clic para eliminar</i>
+            `);
         });
     });
 
-    // Guardar lotes
+    // ✅ Guardar SOLO lotes nuevos
     document.getElementById('guardarLotes').addEventListener('click', function() {
         const selectPrefijo = document.getElementById('prefijoSelect');
         if (!selectPrefijo.value) {
@@ -390,10 +316,15 @@
             return;
         }
 
-        if (lotes.length === 0) {
+        if (lotesNuevos.length === 0) {
             alert('No hay lotes nuevos por guardar.');
             return;
         }
+
+        // ✅ DEBUG: Verificar qué se va a enviar
+        console.log('📤 Enviando lotes nuevos:', lotesNuevos);
+        console.log('📊 Total lotes existentes:', lotesExistentes.length);
+        console.log('📊 Total lotes nuevos:', lotesNuevos.length);
 
         fetch("{{ route('mapa.guardar') }}", {
             method: 'POST',
@@ -401,34 +332,49 @@
                 'Content-Type': 'application/json',
                 'X-CSRF-TOKEN': '{{ csrf_token() }}'
             },
-            body: JSON.stringify({ lotes })
+            body: JSON.stringify({ 
+                lotes: lotesNuevos, // ✅ SOLO enviar lotes nuevos
+                prefijo: selectPrefijo.value 
+            })
         })
         .then(res => res.json())
         .then(data => {
             if (data.success) {
-                alert(data.message);
-                // ✅ Recargar la página completa
-                window.location.reload();
+                toastr.success(data.message);
+                // ✅ Limpiar SOLO los lotes nuevos después de guardar
+                localStorage.removeItem('lotesMapa');
+                lotesNuevos = [];
+                
+                // ✅ Eliminar SOLO los marcadores nuevos del mapa
+                markers.forEach(m => map.removeLayer(m));
+                markers = [];
+                
+                // ✅ Recargar la página para mostrar los nuevos lotes como existentes
+                setTimeout(() => {
+                    window.location.reload();
+                }, 1500);
+                
             } else {
-                toastr.success(data.message || 'Error al guardar.');
-                // alert(data.message || 'Error al guardar.');
+                toastr.error(data.message || 'Error al guardar.');
             }
         })
         .catch(err => {
-            console.error(err);
-            toastr.error(err || 'Error al guardar.');
-            // alert('Error al conectar con el servidor.');
+            console.error('❌ Error:', err);
+            toastr.error('Error al conectar con el servidor.');
         });
     });
 
-    // Limpiar lotes locales
+    // ✅ Limpiar SOLO lotes locales (nuevos)
     document.getElementById('limpiarLotes').addEventListener('click', function() {
         if (confirm('¿Seguro que deseas limpiar los lotes locales no guardados?')) {
             localStorage.removeItem('lotesMapa');
-            lotes = [];
+            lotesNuevos = [];
+            
+            // ✅ Eliminar SOLO los marcadores nuevos
             markers.forEach(m => map.removeLayer(m));
             markers = [];
-            alert('🧹 Lotes locales limpiados.');
+            
+            toastr.success('🧹 Lotes locales limpiados.');
         }
     });
 </script>
