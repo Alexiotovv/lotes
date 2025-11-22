@@ -103,6 +103,42 @@ class VentaController extends Controller
             }
         }
 
+        // DB::transaction(function () use ($request, $esCredito) {
+        //     foreach ($request->detalles as $detalle) {
+        //         $lote = \App\Models\Lote::findOrFail($detalle['lote_id']);
+        //         $precioTotal = $lote->area_m2 * $lote->precio_m2;
+        //         $inicial = $request->inicial;
+        //         $montoFinanciar = max(0, $precioTotal - $inicial);
+        //         $nCuotas = $request->numero_cuotas ?? 0;
+        //         $tasaInteres = $request->tasa_interes;
+
+        //         // Calcular cuota solo si aplica
+        //         $cuota = 0;
+        //         if ($esCredito && $montoFinanciar > 0 && $nCuotas > 0) {
+        //             if ($tasaInteres > 0) {
+        //                 $tem = pow(1 + $tasaInteres, 1 / 12) - 1;
+        //                 $cuota = ($montoFinanciar * $tem * pow(1 + $tem, $nCuotas)) / (pow(1 + $tem, $nCuotas) - 1);
+        //             } else {
+        //                 $cuota = $montoFinanciar / $nCuotas;
+        //             }
+        //         }
+
+        //         $venta = \App\Models\Venta::create([
+        //             'user_id' => auth()->id(),
+        //             'cliente_id' => $request->cliente_id,
+        //             'lote_id' => $detalle['lote_id'],
+        //             'metodopago_id' => $request->metodopago_id,
+        //             'fecha_pago' => $request->fecha_pago,
+        //             'numero_cuotas' => $nCuotas,
+        //             'inicial' => $inicial,
+        //             'monto_financiar' => round($montoFinanciar, 2),
+        //             'tasa_interes' => $tasaInteres,
+        //             'cuota' => round($cuota, 2),
+        //             'observaciones' => $detalle['observaciones'] ?? null,
+        //             'cronograma_generado' => false,
+        //             'estado' => $esCredito ? 'vigente' : 'cerrado',
+        //         ]);
+
         DB::transaction(function () use ($request, $esCredito) {
             foreach ($request->detalles as $detalle) {
                 $lote = \App\Models\Lote::findOrFail($detalle['lote_id']);
@@ -121,6 +157,8 @@ class VentaController extends Controller
                     } else {
                         $cuota = $montoFinanciar / $nCuotas;
                     }
+                    // ✅ REDONDEAR A ENTERO
+                    $cuota = ceil($cuota);
                 }
 
                 $venta = \App\Models\Venta::create([
@@ -133,7 +171,7 @@ class VentaController extends Controller
                     'inicial' => $inicial,
                     'monto_financiar' => round($montoFinanciar, 2),
                     'tasa_interes' => $tasaInteres,
-                    'cuota' => round($cuota, 2),
+                    'cuota' => $cuota, // ✅ Ya está redondeado a entero
                     'observaciones' => $detalle['observaciones'] ?? null,
                     'cronograma_generado' => false,
                     'estado' => $esCredito ? 'vigente' : 'cerrado',

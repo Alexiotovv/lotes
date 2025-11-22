@@ -45,21 +45,7 @@
             </div>
             
             
-            {{-- <div class="col-md-3">
-                <label>Buscar Lote</label>
-                <select id="loteSelect" class="form-select select2">
-                    <option value="">Seleccione un lote</option>
-                    @foreach($lotes as $lote)
-                    <option value="{{ $lote->id }}" 
-                        data-aream2="{{ $lote->area_m2 }}"
-                        data-preciom2="{{ $lote->precio_m2 }}"
-                        data-precio="{{ $lote->precio_m2 * $lote->area_m2 }}"
-                        data-desc="{{ $lote->codigo }} - {{ $lote->nombre }}">
-                        {{ $lote->codigo }} - {{ $lote->nombre }}
-                    </option>
-                    @endforeach
-                </select>
-            </div> --}}
+           
             <div class="col-md-3">
                 <div class="d-flex align-items-center">
                     <label>Buscar Lote</label>
@@ -232,6 +218,27 @@
             // Recalcular al cambiar inicial o cuotas
             $('input[name="inicial"], input[name="numero_cuotas"]').on('input change', recalcularCuota);
 
+            // function recalcularCuota() {
+            //     const precioStr = $('#precio_lote').val();
+            //     const precio = precioStr ? parseFloat(precioStr.replace(/,/g, '')) : 0;
+            //     const inicial = parseFloat($('input[name="inicial"]').val()) || 0;
+            //     const nCuotas = parseInt($('input[name="numero_cuotas"]').val()) || 0;
+            //     const tea = parseFloat($('#tasaInteresInput').val());
+
+            //     const montoFinanciar = Math.max(0, precio - inicial);
+            //     if (nCuotas > 0 && montoFinanciar > 0) {
+            //         if (tea > 0) {
+            //             const tem = Math.pow(1 + tea, 1/12) - 1;
+            //             const cuota = (montoFinanciar * tem * Math.pow(1 + tem, nCuotas)) / (Math.pow(1 + tem, nCuotas) - 1);
+            //             $('#cuotaMostrada').text('S/ ' + cuota.toLocaleString('es-PE', { minimumFractionDigits: 2, maximumFractionDigits: 2 }));
+            //         } else {
+            //             const cuota = montoFinanciar / nCuotas;
+            //             $('#cuotaMostrada').text('S/ ' + cuota.toLocaleString('es-PE', { minimumFractionDigits: 2, maximumFractionDigits: 2 }));
+            //         }
+            //     } else {
+            //         $('#cuotaMostrada').text('S/ --');
+            //     }
+            // }
             function recalcularCuota() {
                 const precioStr = $('#precio_lote').val();
                 const precio = precioStr ? parseFloat(precioStr.replace(/,/g, '')) : 0;
@@ -243,11 +250,15 @@
                 if (nCuotas > 0 && montoFinanciar > 0) {
                     if (tea > 0) {
                         const tem = Math.pow(1 + tea, 1/12) - 1;
-                        const cuota = (montoFinanciar * tem * Math.pow(1 + tem, nCuotas)) / (Math.pow(1 + tem, nCuotas) - 1);
-                        $('#cuotaMostrada').text('S/ ' + cuota.toLocaleString('es-PE', { minimumFractionDigits: 2, maximumFractionDigits: 2 }));
+                        let cuota = (montoFinanciar * tem * Math.pow(1 + tem, nCuotas)) / (Math.pow(1 + tem, nCuotas) - 1);
+                        // ✅ REDONDEAR A ENTERO
+                        cuota = Math.round(cuota);
+                        $('#cuotaMostrada').text('S/ ' + cuota.toLocaleString('es-PE', { minimumFractionDigits: 0, maximumFractionDigits: 0 }));
                     } else {
-                        const cuota = montoFinanciar / nCuotas;
-                        $('#cuotaMostrada').text('S/ ' + cuota.toLocaleString('es-PE', { minimumFractionDigits: 2, maximumFractionDigits: 2 }));
+                        let cuota = montoFinanciar / nCuotas;
+                        // ✅ REDONDEAR A ENTERO
+                        cuota = Math.round(cuota);
+                        $('#cuotaMostrada').text('S/ ' + cuota.toLocaleString('es-PE', { minimumFractionDigits: 0, maximumFractionDigits: 0 }));
                     }
                 } else {
                     $('#cuotaMostrada').text('S/ --');
@@ -285,6 +296,16 @@
                     return;
                 }
 
+                // // Calcular cuota
+                // let cuota = 0;
+                // if (numCuotas > 0 && montoFinanciar > 0) {
+                //     if (tea > 0) {
+                //         const tem = Math.pow(1 + tea, 1/12) - 1;
+                //         cuota = (montoFinanciar * tem * Math.pow(1 + tem, nCuotas)) / (Math.pow(1 + tem, nCuotas) - 1);
+                //     } else {
+                //         cuota = montoFinanciar / nCuotas;
+                //     }
+                // }
                 // Calcular cuota
                 let cuota = 0;
                 if (numCuotas > 0 && montoFinanciar > 0) {
@@ -294,6 +315,8 @@
                     } else {
                         cuota = montoFinanciar / nCuotas;
                     }
+                    // ✅ REDONDEAR A ENTERO
+                    cuota = Math.ceil(cuota);
                 }
                 // Si numCuotas === 0, cuota permanece 0 (venta al contado)
 
