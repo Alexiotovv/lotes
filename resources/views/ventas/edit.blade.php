@@ -132,6 +132,19 @@
     $(document).ready(function() {
         $('.select2').select2({ theme: 'bootstrap-5', width: '100%' });
 
+        // Función para calcular TEM desde TEA
+        function calcularTEM(tea) {
+            return Math.pow(1 + parseFloat(tea), 1/12) - 1;
+        }
+
+        // Función para calcular cuota
+        function calcularCuota(monto, tem, nCuotas) {
+            if (tem === 0) {
+                return monto / nCuotas;
+            }
+            return (monto * tem * Math.pow(1 + tem, nCuotas)) / (Math.pow(1 + tem, nCuotas) - 1);
+        }
+
         // Actualizar campo oculto de tasa
         $('#tasaSelect').on('change', function() {
             const tea = $(this).val();
@@ -143,11 +156,20 @@
         // Mostrar precio del lote
         $('#loteSelect').on('change', function() {
             const opt = $(this).find(':selected');
-            const precio = opt.data('precio');
-            if (precio) {
-                $('#precio_lote').val(parseFloat(precio).toLocaleString('es-PE', { minimumFractionDigits: 2 }));
-                $('#area_m2').val(opt.data('aream2'));
-                $('#precio_m2').val(opt.data('preciom2'));
+            const areaM2 = opt.data('aream2');
+            const precioM2 = opt.data('preciom2');
+            
+            if (areaM2 && precioM2) {
+                const precioTotal = areaM2 * precioM2;
+                $('#precio_lote').val(precioTotal.toLocaleString('es-PE', { 
+                    minimumFractionDigits: 2, 
+                    maximumFractionDigits: 2 
+                }));
+                $('#area_m2').val(areaM2);
+                $('#precio_m2').val(precioM2.toLocaleString('es-PE', { 
+                    minimumFractionDigits: 2, 
+                    maximumFractionDigits: 2 
+                }));
             } else {
                 $('#precio_lote, #area_m2, #precio_m2').val('');
             }
@@ -159,28 +181,85 @@
 
         function recalcularCuota() {
             const precioStr = $('#precio_lote').val();
+            // Limpiar el formato para obtener el número
             const precio = precioStr ? parseFloat(precioStr.replace(/,/g, '')) : 0;
             const inicial = parseFloat($('input[name="inicial"]').val()) || 0;
             const nCuotas = parseInt($('input[name="numero_cuotas"]').val()) || 0;
-            const tea = parseFloat($('#tasaInteresInput').val());
+            const tea = parseFloat($('#tasaInteresInput').val()) || 0;
 
             const montoFinanciar = Math.max(0, precio - inicial);
+            
             if (nCuotas > 0 && montoFinanciar > 0) {
-                if (tea > 0) {
-                    const tem = Math.pow(1 + tea, 1/12) - 1;
-                    const cuota = (montoFinanciar * tem * Math.pow(1 + tem, nCuotas)) / (Math.pow(1 + tem, nCuotas) - 1);
-                    $('#cuotaMostrada').text('S/ ' + cuota.toLocaleString('es-PE', { minimumFractionDigits: 2, maximumFractionDigits: 2 }));
-                } else {
-                    const cuota = montoFinanciar / nCuotas;
-                    $('#cuotaMostrada').text('S/ ' + cuota.toLocaleString('es-PE', { minimumFractionDigits: 2, maximumFractionDigits: 2 }));
-                }
+                const tem = calcularTEM(tea);
+                const cuota = calcularCuota(montoFinanciar, tem, nCuotas);
+                
+                $('#cuotaMostrada').text('S/ ' + cuota.toLocaleString('es-PE', { 
+                    minimumFractionDigits: 2, 
+                    maximumFractionDigits: 2 
+                }));
             } else {
-                $('#cuotaMostrada').text('S/ --');
+                $('#cuotaMostrada').text('S/ 0.00');
             }
         }
 
-        // Inicializar valores
-        $('#tasaMostrada').text((parseFloat($('#tasaInteresInput').val()) * 100).toFixed(2) + '%');
+        // Inicializar valores al cargar
+        setTimeout(function() {
+            $('#loteSelect').trigger('change');
+            $('#tasaSelect').trigger('change');
+        }, 100);
     });
+    // $(document).ready(function() {
+    //     $('.select2').select2({ theme: 'bootstrap-5', width: '100%' });
+
+    //     // Actualizar campo oculto de tasa
+    //     $('#tasaSelect').on('change', function() {
+    //         const tea = $(this).val();
+    //         $('#tasaInteresInput').val(tea);
+    //         $('#tasaMostrada').text((parseFloat(tea) * 100).toFixed(2) + '%');
+    //         recalcularCuota();
+    //     });
+
+    //     // Mostrar precio del lote
+    //     $('#loteSelect').on('change', function() {
+    //         const opt = $(this).find(':selected');
+    //         const precio = opt.data('precio');
+    //         if (precio) {
+    //             $('#precio_lote').val(parseFloat(precio).toLocaleString('es-PE', { minimumFractionDigits: 2 }));
+    //             $('#area_m2').val(opt.data('aream2'));
+    //             $('#precio_m2').val(opt.data('preciom2'));
+    //         } else {
+    //             $('#precio_lote, #area_m2, #precio_m2').val('');
+    //         }
+    //         recalcularCuota();
+    //     });
+
+    //     // Recalcular al cambiar inicial o cuotas
+    //     $('input[name="inicial"], input[name="numero_cuotas"]').on('input change', recalcularCuota);
+
+    //     function recalcularCuota() {
+    //         const precioStr = $('#precio_lote').val();
+    //         const precio = precioStr ? parseFloat(precioStr.replace(/,/g, '')) : 0;
+    //         const inicial = parseFloat($('input[name="inicial"]').val()) || 0;
+    //         const nCuotas = parseInt($('input[name="numero_cuotas"]').val()) || 0;
+    //         const tea = parseFloat($('#tasaInteresInput').val());
+
+    //         const montoFinanciar = Math.max(0, precio - inicial);
+    //         if (nCuotas > 0 && montoFinanciar > 0) {
+    //             if (tea > 0) {
+    //                 const tem = Math.pow(1 + tea, 1/12) - 1;
+    //                 const cuota = (montoFinanciar * tem * Math.pow(1 + tem, nCuotas)) / (Math.pow(1 + tem, nCuotas) - 1);
+    //                 $('#cuotaMostrada').text('S/ ' + cuota.toLocaleString('es-PE', { minimumFractionDigits: 2, maximumFractionDigits: 2 }));
+    //             } else {
+    //                 const cuota = montoFinanciar / nCuotas;
+    //                 $('#cuotaMostrada').text('S/ ' + cuota.toLocaleString('es-PE', { minimumFractionDigits: 2, maximumFractionDigits: 2 }));
+    //             }
+    //         } else {
+    //             $('#cuotaMostrada').text('S/ --');
+    //         }
+    //     }
+
+    //     // Inicializar valores
+    //     $('#tasaMostrada').text((parseFloat($('#tasaInteresInput').val()) * 100).toFixed(2) + '%');
+    // });
 </script>
 @endsection

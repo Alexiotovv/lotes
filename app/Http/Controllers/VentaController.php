@@ -280,22 +280,29 @@ class VentaController extends Controller
             $nCuotas = $validated['numero_cuotas'];
             $tasaInteres = $validated['tasa_interes'];
 
+            // Calcular cuota exactamente igual que en JavaScript
             $cuota = 0;
             if ($montoFinanciar > 0 && $nCuotas > 0) {
                 if ($tasaInteres > 0) {
+                    // Calcular TEM exactamente igual que en JavaScript
                     $tem = pow(1 + $tasaInteres, 1/12) - 1;
+                    // Fórmula exactamente igual que en JavaScript
                     $cuota = ($montoFinanciar * $tem * pow(1 + $tem, $nCuotas)) / (pow(1 + $tem, $nCuotas) - 1);
                 } else {
                     $cuota = $montoFinanciar / $nCuotas;
                 }
             }
 
+            // Redondear exactamente igual
+            $montoFinanciar = round($montoFinanciar, 2);
+            $cuota = round($cuota, 2);
+
             // ✅ 1. Verificar si el lote cambió ANTES de actualizar
             $loteCambio = ($venta->lote_id != $validated['lote_id']);
 
             // ✅ 2. Si cambia, revertir el lote anterior a "Disponible"
             if ($loteCambio) {
-                $loteAnterior = Lote::find($venta->lote_id); // El actual antes del cambio
+                $loteAnterior = Lote::find($venta->lote_id);
                 if ($loteAnterior) {
                     $loteAnterior->update(['estado_lote_id' => 1]); // Disponible
                 }
@@ -309,9 +316,9 @@ class VentaController extends Controller
                 'fecha_pago' => $validated['fecha_pago'],
                 'numero_cuotas' => $nCuotas,
                 'inicial' => $inicial,
-                'monto_financiar' => round($montoFinanciar, 2),
+                'monto_financiar' => $montoFinanciar,
                 'tasa_interes' => $tasaInteres,
-                'cuota' => round($cuota, 2),
+                'cuota' => $cuota,
                 'observaciones' => $validated['observaciones'] ?? null,
             ]);
 
@@ -323,6 +330,82 @@ class VentaController extends Controller
 
         return redirect()->route('ventas.index')->with('success', 'Venta actualizada correctamente.');
     }
+    // public function update(Request $request, Venta $venta)
+    // {
+    //     if ($venta->cronograma_generado) {
+    //         return redirect()->route('ventas.index')->with('error', 'No se puede editar una venta con cronograma generado.');
+    //     }
+
+    //     $validated = $request->validate([
+    //         'cliente_id' => 'required|exists:clientes,id',
+    //         'metodopago_id' => 'required|exists:metodopagos,id',
+    //         'tasa_interes' => 'required|numeric|min:0|max:1',
+    //         'fecha_pago' => 'required|date',
+    //         'numero_cuotas' => 'required|integer|min:1',
+    //         'inicial' => 'required|numeric|min:0',
+    //         'lote_id' => 'required|exists:lotes,id',
+    //         'observaciones' => 'nullable|string|max:250',
+    //     ]);
+
+    //     // Verificar que el nuevo lote no esté vendido (excepto si es el mismo)
+    //     if ($venta->lote_id != $validated['lote_id']) {
+    //         $nuevoLote = Lote::findOrFail($validated['lote_id']);
+    //         if ($nuevoLote->estado_lote_id != 1) {
+    //             return back()->withErrors(['lote_id' => 'El lote seleccionado no está disponible.']);
+    //         }
+    //     }
+
+    //     DB::transaction(function() use ($venta, $validated) {
+    //         $loteNuevo = Lote::findOrFail($validated['lote_id']);
+    //         $precioTotal = $loteNuevo->area_m2 * $loteNuevo->precio_m2;
+    //         $inicial = $validated['inicial'];
+    //         $montoFinanciar = max(0, $precioTotal - $inicial);
+    //         $nCuotas = $validated['numero_cuotas'];
+    //         $tasaInteres = $validated['tasa_interes'];
+
+    //         $cuota = 0;
+    //         if ($montoFinanciar > 0 && $nCuotas > 0) {
+    //             if ($tasaInteres > 0) {
+    //                 $tem = pow(1 + $tasaInteres, 1/12) - 1;
+    //                 $cuota = ($montoFinanciar * $tem * pow(1 + $tem, $nCuotas)) / (pow(1 + $tem, $nCuotas) - 1);
+    //             } else {
+    //                 $cuota = $montoFinanciar / $nCuotas;
+    //             }
+    //         }
+
+    //         // ✅ 1. Verificar si el lote cambió ANTES de actualizar
+    //         $loteCambio = ($venta->lote_id != $validated['lote_id']);
+
+    //         // ✅ 2. Si cambia, revertir el lote anterior a "Disponible"
+    //         if ($loteCambio) {
+    //             $loteAnterior = Lote::find($venta->lote_id); // El actual antes del cambio
+    //             if ($loteAnterior) {
+    //                 $loteAnterior->update(['estado_lote_id' => 1]); // Disponible
+    //             }
+    //         }
+
+    //         // ✅ 3. Actualizar la venta
+    //         $venta->update([
+    //             'cliente_id' => $validated['cliente_id'],
+    //             'lote_id' => $validated['lote_id'],
+    //             'metodopago_id' => $validated['metodopago_id'],
+    //             'fecha_pago' => $validated['fecha_pago'],
+    //             'numero_cuotas' => $nCuotas,
+    //             'inicial' => $inicial,
+    //             'monto_financiar' => round($montoFinanciar, 2),
+    //             'tasa_interes' => $tasaInteres,
+    //             'cuota' => round($cuota, 2),
+    //             'observaciones' => $validated['observaciones'] ?? null,
+    //         ]);
+
+    //         // ✅ 4. Marcar el NUEVO lote como "Vendido"
+    //         if ($loteCambio) {
+    //             $loteNuevo->update(['estado_lote_id' => 3]); // Vendido
+    //         }
+    //     });
+
+    //     return redirect()->route('ventas.index')->with('success', 'Venta actualizada correctamente.');
+    // }
 
     public function edit(Venta $venta)
     {
