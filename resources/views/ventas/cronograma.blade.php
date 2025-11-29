@@ -215,7 +215,7 @@
     <div class="datos-cliente">
         <div><strong>Cliente:</strong> {{ $venta->cliente->nombre_cliente }}</div>
         <div><strong>DNI:</strong> {{ $venta->cliente->dni_ruc }}</div>
-        <div><strong>Lote:</strong> {{ $venta->lote->nombre }} ({{ $venta->lote->area_m2 }} m²)</div>
+        <div><strong>Lote:</strong> {{ $venta->lote->codigo }} ({{ $venta->lote->area_m2 }} m²)</div>
         <div><strong>Precio:</strong> S/ {{ number_format($venta->lote->area_m2 * $venta->lote->precio_m2, 2) }}</div>
         <div><strong>Inicial:</strong> S/ {{ number_format($venta->inicial, 2) }}</div>
         <div><strong>Saldo:</strong> S/ {{ number_format($venta->monto_financiar, 2) }}</div>

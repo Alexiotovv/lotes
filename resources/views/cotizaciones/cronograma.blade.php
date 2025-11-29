@@ -230,7 +230,7 @@
     <div class="datos-cliente">
         <div><strong>Cliente:</strong> {{ $cotizacion->cliente->nombre_cliente }}</div>
         <div><strong>DNI:</strong> {{ $cotizacion->cliente->dni_ruc }}</div>
-        <div><strong>Lote:</strong> {{ $cotizacion->lote->nombre }} ({{ $cotizacion->lote->area_m2 }} m²)</div>
+        <div><strong>Lote:</strong> {{ $cotizacion->lote->codigo }} ({{ $cotizacion->lote->area_m2 }} m²)</div>
         <div><strong>Precio:</strong> S/ {{ number_format($cotizacion->lote->area_m2 * $cotizacion->lote->precio_m2, 2) }}</div>
         <div><strong>Inicial:</strong> S/ {{ number_format($cotizacion->inicial, 2) }}</div>
         <div><strong>Saldo:</strong> S/ {{ number_format($cotizacion->monto_financiar, 2) }}</div>

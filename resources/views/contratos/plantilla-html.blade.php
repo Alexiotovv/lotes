@@ -230,7 +230,8 @@
         <div class="section-title">PENALIDADES:</div>
         <ol>
             <li>EL PRESENTE CONTRATO SE RESOLVERA A FAVOR DE LA VENDEDORA SI EL COMPRADOR INCUMPLE 
-                CON EL PAGO DE 02 (DOS) CUOTAS CONSECUTIVAS DE LAS 24 (VEINTICUATRO) CUOTAS 
+                CON EL PAGO DE 02 (DOS) CUOTAS CONSECUTIVAS DE LAS {{ $venta->numero_cuotas }} 
+                (<span id="numero-cuotas-letras" data-numero="{{ $venta->numero_cuotas }}"></span>) CUOTAS 
                 ESPECIFICADAS POR LOTE; EN CASO DE QUE EL COMPRADOR YA ESTE OCUPANDO EL LOTE 
                 RESPECTIVO, ESTE SE VERA OBLIGADO A DESALOJARLO EN UN PLAZO MAXIMO DE 48 HORAS,
                  CASO CONTRARIO SE PROCEDERÁ A ACTUAR CONFORME A LEY.=============</li>
@@ -256,5 +257,96 @@
             El presente contrato fue leído y aceptado de conformidad por ambas partes y prueba de ello firman y legalizan sus firmas ante notario públicos para efecto de la ley.
         </div>
     </div>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const elemento = document.getElementById('numero-cuotas-letras');
+            const numero = elemento.getAttribute('data-numero');
+            elemento.textContent = numeroALetras(parseInt(numero));
+        });
+        function numeroALetras(numero) {
+            const UNIDADES = ['', 'UNO', 'DOS', 'TRES', 'CUATRO', 'CINCO', 'SEIS', 'SIETE', 'OCHO', 'NUEVE'];
+            const DECENAS = [
+                'DIEZ', 'ONCE', 'DOCE', 'TRECE', 'CATORCE', 'QUINCE', 'DIECISÉIS', 'DIECISIETE', 'DIECIOCHO', 'DIECINUEVE',
+                'VEINTE', 'VEINTIUNO', 'VEINTIDÓS', 'VEINTITRÉS', 'VEINTICUATRO', 'VEINTICINCO', 'VEINTISÉIS', 'VEINTISIETE', 'VEINTIOCHO', 'VEINTINUEVE'
+            ];
+            const CENTENAS = [
+                '', 'CIENTO', 'DOSCIENTOS', 'TRESCIENTOS', 'CUATROCIENTOS', 'QUINIENTOS', 
+                'SEISCIENTOS', 'SETECIENTOS', 'OCHOCIENTOS', 'NOVECIENTOS'
+            ];
+    
+            function convertirGrupo(n) {
+                let output = '';
+                n = parseInt(n);
+                
+                if (n === 100) {
+                    return 'CIEN';
+                } else if (n >= 100) {
+                    output = CENTENAS[Math.floor(n / 100)];
+                    n = n % 100;
+                    if (n > 0) {
+                        output += ' ' + convertirGrupo(n);
+                    }
+                } else if (n >= 10) {
+                    if (n < 30) {
+                        output = DECENAS[n - 10];
+                    } else {
+                        if (n >= 30 && n < 40) {
+                            output = 'TREINTA';
+                            if (n > 30) output += ' Y ' + UNIDADES[n - 30];
+                        } else if (n >= 40 && n < 50) {
+                            output = 'CUARENTA';
+                            if (n > 40) output += ' Y ' + UNIDADES[n - 40];
+                        } else if (n >= 50 && n < 60) {
+                            output = 'CINCUENTA';
+                            if (n > 50) output += ' Y ' + UNIDADES[n - 50];
+                        } else if (n >= 60 && n < 70) {
+                            output = 'SESENTA';
+                            if (n > 60) output += ' Y ' + UNIDADES[n - 60];
+                        } else if (n >= 70 && n < 80) {
+                            output = 'SETENTA';
+                            if (n > 70) output += ' Y ' + UNIDADES[n - 70];
+                        } else if (n >= 80 && n < 90) {
+                            output = 'OCHENTA';
+                            if (n > 80) output += ' Y ' + UNIDADES[n - 80];
+                        } else if (n >= 90 && n < 100) {
+                            output = 'NOVENTA';
+                            if (n > 90) output += ' Y ' + UNIDADES[n - 90];
+                        }
+                    }
+                } else if (n > 0) {
+                    output = UNIDADES[n];
+                }
+                
+                return output;
+            }
+    
+            // Manejar números decimales
+            const partes = numero.toString().split('.');
+            const entero = parseInt(partes[0]);
+            const decimales = partes[1] ? parseInt(partes[1]) : 0;
+    
+            let resultado = '';
+    
+            if (entero === 0) {
+                resultado = 'CERO';
+            } else if (entero < 1000) {
+                resultado = convertirGrupo(entero);
+            } else {
+                resultado = 'NÚMERO DEMASIADO GRANDE';
+            }
+    
+            // Agregar decimales si existen
+            if (decimales > 0) {
+                resultado += ' CON ' + convertirGrupo(decimales) + ' CENTÍMOS';
+            }
+    
+            return resultado.trim();
+        }
+
+    
+        // Ejemplos de uso:
+        // console.log(numeroALetras(24)); // "VEINTICUATRO"
+        // console.log(numeroALetras(12.50)); // "DOCE CON CINCUENTA CENTÍMOS"
+    </script>
 </body>
 </html>
