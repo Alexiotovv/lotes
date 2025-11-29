@@ -207,7 +207,15 @@
             $('#loteSelect').trigger('change');
             $('#tasaSelect').trigger('change');
         }, 100);
+        // Al final del document ready, agregar:
+        
+        // Inicializar cálculo con los valores actuales de la venta
+        setTimeout(function() {
+            // Forzar el cálculo inicial
+            recalcularCuota();
+        }, 500);
     });
+    
     // $(document).ready(function() {
     //     $('.select2').select2({ theme: 'bootstrap-5', width: '100%' });
 

@@ -63,7 +63,7 @@
             text-align: center;
             margin-top: 50px;
             font-size: 12px;
-            padding-top: 450px
+            padding-top: 430px
         }
 
          button:hover {
@@ -94,12 +94,20 @@
 
             /* ✅ Forzar márgenes de impresión */
             @page {
-                margin: 20mm 15mm; /* Margen superior/inferior: 20mm, laterales: 15mm */
+                margin: 20mm 20mm; /* Margen superior/inferior: 20mm, laterales: 15mm */
                 size: A4;
             }
 
             /* Opcional: Forzar salto de página antes o después si hay varios contratos */
             /* .a4-container { break-inside: avoid; } */
+        }
+        li {
+            text-align: justify;
+            text-justify: inter-word;
+        }
+        p{
+            text-align: justify;
+            text-justify: inter-word;
         }
     </style>
 </head>
@@ -131,14 +139,14 @@
 
         <div class="section-title">DE PARTE DEL VENDEDOR:============================================</div>
         <ol>
-            <li>QUE ES UNA PERSONA JURIDICA QUE TIENE POR GERENTE AL SEÑOR SIR 
+            <li>QUE ES UNA PERSONA JURÍDICA QUE TIENE POR GERENTE AL SEÑOR SIR 
                 HENRY HUAMAN AMASIFUEN QUE SE ENCUENTRA EN PLENO EJERCICIO DE 
                 SU DERECHO Y QUE CUENTA CON LA CAPACIDAD LEGAL PARA CONTRATAR 
                 EN NOMBRE DEL VENDEDOR.=====================================</li>
             <li>SE MENCIONA QUE EN LA ACTUALIDAD EL PREDIO SE ENCUENTRA LIBRE Y
                  CONSIDERADO SOLO COMO TERRENO, PUNTO QUE EL COMPRADOR TIENE 
                  TOTAL CONOCIMIENTO, HABIENDO INCLUSO YA VERIFICADO EL PREDIO; 
-                 ES IMPORTANTE MENCIONAR QUE EL PREDIO A VENDER SE VENDERA SOLO 
+                 ES IMPORTANTE MENCIONAR QUE EL PREDIO A VENDER SE VENDERÁ SOLO 
                  COMO LOTE DE TERRENO, SIN LUZ, AGUA Y DESAGUE, POR LO QUE ESTAS 
                  GESTIONES SE ENCARGARA EL COMPRADOR.=======================</li>
             <li>EN CASO DE SINIESTROS NATURALES DE CUALQUIER TIPO, INCENDIO, ASENTAMIENTO 
@@ -153,11 +161,15 @@
             <li>QUE CONOCE EL PREDIO OBJETO DE ESTE CONTRATO, MANIFESTANDO QUE ESTA CONFORME CON LO 
                 DECLARADO.=========================</li>
         </ol>
-
+        <div class="page-break"></div>
         <div class="section-title">ACUERDO DE LAS PARTES:========================================</div>
         <ol>
-            <li>QUE LOS BIENES MATERIA DEL PRESENTE CONTRATO SE ENCUENTRAN UBICADOS EN {{ $lote->codigo }} - {{ $lote->nombre }}, {{ $lote->descripcion ?? '' }}.</li>
-            <li>QUE LOS LOTES MATERIA DEL PRESENTE CONTRATO CUENTAN CON LAS SIGUIENTES MEDIDAS:=======================</li>
+            @php
+                $mz = substr($lote->codigo, 0, 1);       // Primera letra
+                $lt = substr($lote->codigo, 1);          // Resto del código
+            @endphp
+            <li>QUE LOS BIENES MATERIA DEL PRESENTE CONTRATO SE ENCUENTRAN UBICADOS EN          PRED.RUST.DEN.SECTOR PEÑA NEGRA 13-MARGEN DERECHO DE LA CARRETERA IQUITOS – NAUTA KM.11.00 AREA Ha. 10HA 5835.24 M2 U.C. 026408. SAN JUAN BAUTISTA, PROVINCIA MAYNAS, DEPARTAMENTO LORETO, INSCRITO CON PARTIDA REGISTRAL N° 11016989.==========.</li>
+            <li>QUE LOS LOTES MATERIA DEL PRESENTE CONTRATO (LOTE N° {{$lt}} PERTENECIENTE A LA MANZANA “{{$mz}}”) CUENTAN CON LAS SIGUIENTES MEDIDAS: ======================================</li>
             <table>
                 <tr>
                     <td>Lote:</td>
@@ -181,20 +193,20 @@
                 </tr>
             </table>
             <li>EL VENDEDOR ESTA OBLIGADO A VENDER AL COMPRADOR Y ESTE ESTARA OBLIGADO A COMPRAR 
-                EL LOTE N° {{ $lote->codigo }} UBICADO EN LA MZ. {{ $lote->nombre }} DEL INMUEBLE
-                ANTES MENCIONADO EN UN PLAZO DE VEINTICUATRO (24) MESES, {{ $venta->numero_cuotas }} AÑOS,
+                EL LOTE N° {{ $lt }} UBICADO EN LA MZ. "{{ $mz }}" DEL INMUEBLE
+                ANTES MENCIONADO EN UN PLAZO DE {{ $venta->numero_cuotas }} MESES,
                 CONTADOS A PARTIR DEL DIA SIGUIENTE A LA FIRMA DE ESTE CONTRATO.============</li>
             <li>LAS PARTES FIJAN POR MUTUO ACUERDO COMO PRECIO DE LA FUTURA COMPRA VENTA LA
                 CANTIDAD TOTAL DE S/{{ number_format($venta->monto_financiar + $venta->inicial, 2) }} 
                 MIL CON 00/100 SOLES), QUE TENDRA QUE SER CANCELADO EN {{ $venta->numero_cuotas }} 
                 CUOTAS MENSUALES DE S/{{ number_format($venta->cuota, 2) }} 
-                ({{ number_format($venta->cuota, 2) }}/100SOLES), QUE ESTARA DETALLADA EN EL 
+                ({{ number_format($venta->cuota, 2) }}/100 SOLES), QUE ESTARA DETALLADA EN EL 
                 ANEXO DEL CONTRATO.===================</li>
             <li>CABE INDICAR QUE EL COMPRADOR PUEDE AMORTIZAR Y LIQUIDAR EN UN FUTURO Y DE 
                 ESTA MANERA PODRA RECIBIR SU TITULO EN EL MENOR TIEMPO POSIBLE.</li>
             <li>EL VENDEDOR SE OBLIGA AL SANEAMIENTO EN CASO DE HIPOTECAS, Y OTROS PARA LA 
                 CONFORMIDAD DEL COMPRADOR DE CONFORMIDAD CON EL CODIGO CIVIL DE NUESTRA 
-                LEGISLACION Y SUS PERTINENTES ARTICULOS.===============</li>
+                LEGISLACIÓN Y SUS PERTINENTES ARTICULOS.===============</li>
             <li>EL VENDEDOR SE COMPROMETE A PROCEDER CON LA INDEPENDIZACION Y EL CAMBIO DE 
                 TITULARIDAD EN LA PARTIDA REGISTRAL UNA VEZ QUE EL COMPRADOR HAYA CANCELADO LA 
                 TOTALIDAD DEL VALOR DE VENTA DEL RESPECTIVO LOTE.=============</li>
@@ -209,11 +221,11 @@
             <li>EL COMPRADOR AL RECEPCIONAR LA ENTREGA DEL LOTE SE HACE RESPONSABLE DE LA 
                 CONSERVACION Y CUIDADO DE SU PERIMETRO, ASI MISMO SE HACE RESPONSABLE DE 
                 RECORDAR LA UBICACIÓN DE SU LOTE Y ASUMIR LOS IMPUESTOS PREDIALES MUNICIPALES, 
-                PESE A QUE ESTE AÚN FIGURE A NOMBRE DEL VENDEDOR.=================</li>
+                PESE A QUE ESTE AÚN FIGURE A NOMBRE DEL VENDEDOR.=======</li>
             <li>EL PRESENTE CONTRATO TOMARA VIGENCIA EN EL MOMENTO EN QUE LAS PARTES PROCEDAN 
                 A FIRMARLOS.==================</li>
         </ol>
-        <div class="page-break"></div>
+        
 
         <div class="section-title">PENALIDADES:</div>
         <ol>
@@ -221,26 +233,26 @@
                 CON EL PAGO DE 02 (DOS) CUOTAS CONSECUTIVAS DE LAS 24 (VEINTICUATRO) CUOTAS 
                 ESPECIFICADAS POR LOTE; EN CASO DE QUE EL COMPRADOR YA ESTE OCUPANDO EL LOTE 
                 RESPECTIVO, ESTE SE VERA OBLIGADO A DESALOJARLO EN UN PLAZO MAXIMO DE 48 HORAS,
-                 CASO CONTRARIO SE PROCEDERA A ACTUAR CONFORME A LEY.=============</li>
+                 CASO CONTRARIO SE PROCEDERÁ A ACTUAR CONFORME A LEY.=============</li>
             <li>EN CASO DE EXISTIR UNA CONTRAVERSIA RESPECTO AL CUMPLIMIENTO DE ALGUNA DE LAS 
-                CLAUSULAS POR CUALQUIERA DE LAS PARTES, SE PROCEDERA DE MANERA OBLIGATORIA A 
-                RESOLVERLO MEDIANTE CONCILIACION EXTRAJUDICIAL, DE NO PODER LLEGAR A UN ACUERDO 
+                CLAUSULAS POR CUALQUIERA DE LAS PARTES, SE PROCEDERÁ DE MANERA OBLIGATORIA A 
+                RESOLVERLO MEDIANTE CONCILIACIÓN EXTRAJUDICIAL, DE NO PODER LLEGAR A UN ACUERDO 
                 CONCILIATORIO ENTRE LAS PARTES, ESTAS SE SOMETEN A ACTUAR CONFORME A LEY Y BAJO
-                 LA LEGISLACION Y ARTICULOS CORRESPONDIENTE DE NUESTRO CODIGO CIVIL.===============</li>
+                 LA LEGISLACIÓN Y ARTICULOS CORRESPONDIENTE DE NUESTRO CODIGO CIVIL.===============</li>
         </ol>
 
-        <div class="section-title">LEGISLACION Y ARTICULOS CORRESPONDIENTE DE 
+        <div class="section-title">LEGISLACIÓN Y ARTICULOS CORRESPONDIENTE DE 
             NUESTRO CODIGO CIVIL</div>
         <ol>
-            <li>EN EL CASO DE LA DISOLUCION ABSOLUTA DEL CONTRATO, LAS PARTES ACUERDAN 
+            <li>EN EL CASO DE LA DISOLUCIÓN ABSOLUTA DEL CONTRATO, LAS PARTES ACUERDAN 
                 QUE NO HABRA DEVOLUCION DE NINGUNO DE LOS PAGOS, NI LAS INICIALES, 
                 NI LAS CUOTAS QUE SE HAYAN CANCELADO HASTA EL MOMENTO EN EL QUE SE DESISTA 
                 DEL PRESENTE ACTO, YA SEA POR VOLUNTAD O FORZADO POR LA LEY.====================</li>
         </ol>
 
         <div class="footer">
-            CELULAR: 958679223<br>
-            Loretto - Maynas<br>
+            CELULAR: {{$empresa->telefono}}<br>
+            {{$empresa->departamento}} - {{$empresa->provincia}} - {{$empresa->distrito}}<br>
             El presente contrato fue leído y aceptado de conformidad por ambas partes y prueba de ello firman y legalizan sus firmas ante notario públicos para efecto de la ley.
         </div>
     </div>
