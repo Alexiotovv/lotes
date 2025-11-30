@@ -21,4 +21,9 @@ class Cliente extends Model
         'distrito',
         'telefono',
     ];
+
+    public function ventas()
+    {
+        return $this->hasMany(Venta::class);
+    }
 }

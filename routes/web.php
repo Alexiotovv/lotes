@@ -14,6 +14,7 @@ use App\Http\Controllers\TasaController;
 use App\Http\Controllers\ReporteController;
 use App\Http\Controllers\ContratoController;
 use App\Http\Controllers\MapImageController;
+use App\Http\Controllers\ContratoAgrupadoController;
 // === Autenticación ===
 Route::get('/login', [LoginController::class, 'showLoginForm'])->name('login');
 Route::post('/login', [LoginController::class, 'login']);
@@ -84,10 +85,18 @@ Route::middleware(['auth', 'vendedor'])->group(function () {
     Route::delete('/mapa/imagen-superpuesta/{id}', [MapImageController::class, 'eliminarImagenSuperpuesta'])->name('imagen.superpuesta.eliminar');
     Route::put('/mapa/imagen-superpuesta/actualizar/{id}', [MapImageController::class, 'actualizarImagenSuperpuesta'])->name('imagen.superpuesta.actualizar');
 
+
 });
 
 // === Rutas solo para ADMINISTRADORES ===
 Route::middleware(['auth', 'admin'])->group(function () {
+    // Rutas para contratos agrupados
+    Route::get('/contratos-agrupados', [ContratoAgrupadoController::class, 'index'])->name('contratos.agrupados.index');
+    Route::post('/contratos-agrupados/buscar-cliente', [ContratoAgrupadoController::class, 'buscarCliente'])->name('contratos.agrupados.buscar-cliente');
+    Route::get('/contratos-agrupados/ventas-cliente/{clienteId}', [ContratoAgrupadoController::class, 'getVentasCliente'])->name('contratos.agrupados.ventas-cliente');
+    Route::post('/contratos-agrupados/generar', [ContratoAgrupadoController::class, 'generarContrato'])->name('contratos.agrupados.generar');
+    Route::get('/contratos-agrupados/vista-previa', [ContratoAgrupadoController::class, 'vistaPrevia'])->name('contratos.agrupados.vista-previa');
+    Route::get('/contratos-agrupados/contratos-cliente/{clienteId}', [ContratoAgrupadoController::class, 'getContratosCliente']);
 
     //Imagen Posicionada
     Route::get('/mapa/editar', [MapImageController::class, 'index'])->name('map.edit');
