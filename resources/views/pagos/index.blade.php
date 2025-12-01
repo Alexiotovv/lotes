@@ -137,7 +137,10 @@
         </tbody>
     </table>
   </div>
-
+    <!-- Enlaces de paginación -->
+    <div class="d-flex justify-content-end mt-3">
+        {{ $ventas->links() }}
+    </div>
   <!-- Modal: Ver Pagos -->
   <div class="modal fade" id="modalPagos" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-lg">
