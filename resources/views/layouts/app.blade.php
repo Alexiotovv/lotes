@@ -53,6 +53,8 @@
           <a href="{{ route('pagos.index') }}" class="nav-link">🗸 Pagos</a>
           <a href="{{ route('cotizaciones.index') }}" class="nav-link">🗸 Cotizaciones</a>          
           <a href="{{ route('contratos.agrupados.index') }}" class="nav-link">📄 Contratos Agrupados</a>
+          <a href="{{ route('pagos-agrupados.index') }}" class="nav-link">📄 Pagos Agrupados</a>
+          
         </div>
 
         <a class="nav-link d-flex justify-content-between align-items-center" data-bs-toggle="collapse" href="#menuLogistica">

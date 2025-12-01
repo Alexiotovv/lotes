@@ -15,6 +15,8 @@ use App\Http\Controllers\ReporteController;
 use App\Http\Controllers\ContratoController;
 use App\Http\Controllers\MapImageController;
 use App\Http\Controllers\ContratoAgrupadoController;
+use App\Http\Controllers\PagosAgrupadosController;
+
 // === Autenticación ===
 Route::get('/login', [LoginController::class, 'showLoginForm'])->name('login');
 Route::post('/login', [LoginController::class, 'login']);
@@ -27,6 +29,11 @@ Route::middleware(['auth'])->group(function () {
 
 // === Rutas solo para VENDEDORES y admines ===
 Route::middleware(['auth', 'vendedor'])->group(function () {
+    // Pagos Agrupados
+    Route::get('/pagos-agrupados', [PagosAgrupadosController::class, 'index'])->name('pagos-agrupados.index');
+    Route::get('/pagos-agrupados/cliente/{cliente}/ventas', [PagosAgrupadosController::class, 'getVentasCliente'])->name('pagos-agrupados.cliente.ventas');
+    Route::post('/pagos-agrupados', [PagosAgrupadosController::class, 'store'])->name('pagos-agrupados.store');
+
 
     //Reservas
     Route::resource('reservas', ReservaController::class)->except(['show']);

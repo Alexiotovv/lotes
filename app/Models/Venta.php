@@ -64,10 +64,6 @@ class Venta extends Model
         return $this->hasMany(Movimiento::class);
     }
     
-    // public function cronogramas()
-    // {
-    //     return $this->hasMany(Cronograma::class, 'venta_id');
-    // }
 
     public function pagos()
     {
