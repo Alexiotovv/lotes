@@ -16,6 +16,7 @@ use App\Http\Controllers\ContratoController;
 use App\Http\Controllers\MapImageController;
 use App\Http\Controllers\ContratoAgrupadoController;
 use App\Http\Controllers\PagosAgrupadosController;
+use App\Http\Controllers\CronogramaAgrupadoController;
 
 // === Autenticación ===
 Route::get('/login', [LoginController::class, 'showLoginForm'])->name('login');
@@ -29,6 +30,15 @@ Route::middleware(['auth'])->group(function () {
 
 // === Rutas solo para VENDEDORES y admines ===
 Route::middleware(['auth', 'vendedor'])->group(function () {
+    // Cronogramas Agrupados - usando tabla cronogramas existente
+    Route::get('/cronogramas-agrupados', [CronogramaAgrupadoController::class, 'index'])->name('cronogramas-agrupados.index');
+    Route::get('/cronogramas-agrupados/cliente/{cliente}/ventas', [CronogramaAgrupadoController::class, 'getVentasCliente']);
+    Route::post('/cronogramas-agrupados/generar', [CronogramaAgrupadoController::class, 'generar'])->name('cronogramas-agrupados.generar');
+    Route::get('/cronogramas-agrupados/grupo/{grupoId}', [CronogramaAgrupadoController::class, 'verCronogramaAgrupado'])->name('cronogramas-agrupados.ver');
+    Route::get('/cronogramas-agrupados/impresiones', [CronogramaAgrupadoController::class, 'impresiones'])->name('cronogramas-agrupados.impresiones');
+    Route::get('/cronogramas-agrupados/cliente/{cliente}/grupos', [CronogramaAgrupadoController::class, 'getGruposCliente']);
+    Route::delete('/cronogramas-agrupados/grupo/{grupoId}', [CronogramaAgrupadoController::class, 'eliminarGrupo']);
+
     // Pagos Agrupados
     Route::get('/pagos-agrupados', [PagosAgrupadosController::class, 'index'])->name('pagos-agrupados.index');
     Route::get('/pagos-agrupados/cliente/{cliente}/ventas', [PagosAgrupadosController::class, 'getVentasCliente'])->name('pagos-agrupados.cliente.ventas');
@@ -97,6 +107,7 @@ Route::middleware(['auth', 'vendedor'])->group(function () {
 
 // === Rutas solo para ADMINISTRADORES ===
 Route::middleware(['auth', 'admin'])->group(function () {
+
     // Rutas para contratos agrupados
     Route::get('/contratos-agrupados', [ContratoAgrupadoController::class, 'index'])->name('contratos.agrupados.index');
     Route::post('/contratos-agrupados/buscar-cliente', [ContratoAgrupadoController::class, 'buscarCliente'])->name('contratos.agrupados.buscar-cliente');

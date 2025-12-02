@@ -54,6 +54,8 @@
           <a href="{{ route('cotizaciones.index') }}" class="nav-link">🗸 Cotizaciones</a>          
           <a href="{{ route('contratos.agrupados.index') }}" class="nav-link">📄 Contratos Agrupados</a>
           <a href="{{ route('pagos-agrupados.index') }}" class="nav-link">📄 Pagos Agrupados</a>
+          <a href="{{ route('cronogramas-agrupados.index') }}" class="nav-link">📄 Cronogramas Agrupados</a>
+          
           
         </div>
 

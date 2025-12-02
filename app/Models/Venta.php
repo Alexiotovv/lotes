@@ -74,4 +74,14 @@ class Venta extends Model
         return $this->hasMany(Contrato::class);
     }
     
+    public function cronogramasAgrupados()
+    {
+        return $this->belongsToMany(
+            CronogramaAgrupado::class, 
+            'cronograma_agrupado_ventas', // nombre de la tabla pivote
+            'venta_id',                    // foreign key en la tabla pivote
+            'cronograma_agrupado_id'       // related key en la tabla pivote
+        )->withPivot('monto_asignado')
+         ->withTimestamps();
+    }
 }
