@@ -82,24 +82,42 @@
                     @endif
 
                     @if($v->cronograma_generado)
-                    <br>
-                        {{-- <a href="{{ route('ventas.cronograma', $v) }}" target="_blank" class="btn btn-outline-info btn-sm">
-                            🖨️ Cronograma
-                        </a> --}}
-                         <button type="button" class="btn btn-outline-info btn-sm" onclick="mostrarCronograma({{ $v->id }})">
+                    {{-- Verificar si el cronograma está agrupado --}}
+                    @php
+                        // Obtener si el cronograma está agrupado
+                        $cronogramas = $v->cronogramas;
+                        $esAgrupado = false;
+                        $grupoId = null;
+                        
+                        if ($cronogramas->isNotEmpty()) {
+                            foreach ($cronogramas as $crono) {
+                                if (!empty($crono->grupo_id)) {
+                                    $esAgrupado = true;
+                                    $grupoId = $crono->grupo_id;
+                                    break;
+                                }
+                            }
+                        }
+                    @endphp
+                    
+                    @if($esAgrupado)
+                        <button type="button" class="btn btn-outline-info btn-sm" onclick="" disabled>
+                            📋 C.Agrupado
+                        </button>
+                    @else
+                        <button type="button" class="btn btn-outline-info btn-sm" onclick="mostrarCronograma({{ $v->id }})">
                             📋 Ver Cronograma
                         </button>
-                        <br>
-                    @elseif($v->metodopago && $v->metodopago->es_credito)
-                        {{-- ✅ Solo mostrar "Generar Cronograma" si es venta al crédito --}}
-                        <form action="{{ route('ventas.generar-cronograma', $v) }}" method="POST" class="d-inline" onsubmit="return confirm('¿Está seguro de generar el cronograma? Esta acción no se puede deshacer.')">
-                            @csrf
-                            <button type="submit" class="btn btn-outline-warning btn-sm">
-                                📊 Generar Cronograma
-                            </button>
-                            
-                        </form>
                     @endif
+                @elseif($v->metodopago && $v->metodopago->es_credito)
+                    {{-- ✅ Solo mostrar "Generar Cronograma" si es venta al crédito --}}
+                    <form action="{{ route('ventas.generar-cronograma', $v) }}" method="POST" class="d-inline" onsubmit="return confirm('¿Está seguro de generar el cronograma? Esta acción no se puede deshacer.')">
+                        @csrf
+                        <button type="submit" class="btn btn-outline-warning btn-sm">
+                            📊 Generar Cronograma
+                        </button>
+                    </form>
+                @endif
 
                     @if(Auth::user()->is_admin || Auth::user()->role === 'admin')
                     <br>
@@ -114,9 +132,16 @@
                         
 
                         @if($v->contratos()->where('activo', true)->exists())
-                            <button type="button" class="btn btn-sm btn-outline-primary" onclick="mostrarContratos({{ $v->id }})">
-                                📄 Contrato
-                            </button>
+                            @if($esAgrupado)
+                                <button type="button" class="btn btn-sm btn-outline-primary" onclick="" disabled>
+                                    📄 C. Agrupado
+                                </button>
+                            @else
+
+                                <button type="button" class="btn btn-sm btn-outline-primary" onclick="mostrarContratos({{ $v->id }})">
+                                    📄 Contrato
+                                </button>
+                            @endif
                             <br>
                         @else
                             <form action="{{ route('ventas.contrato.generar', $v) }}" method="POST" onsubmit="return confirm('¿Generar contrato?')">

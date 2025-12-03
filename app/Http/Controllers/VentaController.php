@@ -528,36 +528,46 @@ class VentaController extends Controller
         return redirect()->route('ventas.index')->with('success', 'Estado actualizado correctamente.');
     }
 
-    // ✅ Método para obtener detalle del cronograma
-public function detalleCronograma(Venta $venta)
-{
-    $cronogramas = $venta->cronogramas()->orderBy('nro_cuota')->get();
+    public function detalleCronograma(Venta $venta)
+    {
+        $cronogramas = $venta->cronogramas()->orderBy('nro_cuota')->get();
 
-    // Verificar si tiene pagos
-    $tienePagos = false;
-    foreach ($cronogramas as $crono) {
-        if ($crono->pagos()->exists()) {
-            $tienePagos = true;
-            break;
+        // Verificar si tiene pagos
+        $tienePagos = false;
+        $esAgrupado = false;
+        $grupoId = null;
+        
+        foreach ($cronogramas as $crono) {
+            if ($crono->pagos()->exists()) {
+                $tienePagos = true;
+            }
+            // Verificar si tiene grupo_id (está agrupado)
+            if (!empty($crono->grupo_id)) {
+                $esAgrupado = true;
+                $grupoId = $crono->grupo_id;
+                break;
+            }
         }
-    }
 
-    return response()->json([
-        'cronogramas' => $cronogramas->map(function ($c) {
-            return [
-                'id' => $c->id,
-                'nro_cuota' => $c->nro_cuota,
-                'fecha_pago' => $c->fecha_pago->format('d/m/Y'),
-                'cuota' => $c->cuota,
-                'saldo' => $c->saldo,
-                'interes' => $c->interes,
-                'amortizacion' => $c->amortizacion,
-                'estado' => $c->estado,
-            ];
-        }),
-        'tiene_pagos' => $tienePagos,
-    ]);
-}
+        return response()->json([
+            'cronogramas' => $cronogramas->map(function ($c) {
+                return [
+                    'id' => $c->id,
+                    'nro_cuota' => $c->nro_cuota,
+                    'fecha_pago' => $c->fecha_pago->format('d/m/Y'),
+                    'cuota' => $c->cuota,
+                    'saldo' => $c->saldo,
+                    'interes' => $c->interes,
+                    'amortizacion' => $c->amortizacion,
+                    'estado' => $c->estado,
+                    'grupo_id' => $c->grupo_id, // ← NUEVO
+                ];
+            }),
+            'tiene_pagos' => $tienePagos,
+            'es_agrupado' => $esAgrupado, // ← NUEVO
+            'grupo_id' => $grupoId, // ← NUEVO
+        ]);
+    }
 
     public function eliminarCronograma(Venta $venta)
     {
