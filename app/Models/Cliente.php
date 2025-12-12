@@ -55,4 +55,12 @@ class Cliente extends Model
             });
     }
 
+    // En App\Models\Cliente.php
+    public function ventasComoPropietarioAdicional()
+    {
+        return $this->belongsToMany(Venta::class, 'propietarios_adicionales')
+                    ->withTimestamps();
+    }
+
+    
 }

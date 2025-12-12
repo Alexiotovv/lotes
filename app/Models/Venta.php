@@ -84,4 +84,15 @@ class Venta extends Model
         )->withPivot('monto_asignado')
          ->withTimestamps();
     }
+    
+    public function propietariosAdicionales()
+    {
+        return $this->hasMany(PropietarioAdicional::class);
+    }
+
+    public function clientesAdicionales()
+    {
+        return $this->belongsToMany(Cliente::class, 'propietarios_adicionales')
+                    ->withTimestamps();
+    }
 }

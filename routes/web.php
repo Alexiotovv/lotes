@@ -75,6 +75,13 @@ Route::middleware(['auth', 'vendedor'])->group(function () {
     Route::post('/ventas/store', [VentaController::class, 'store'])->name('ventas.store');
     Route::get('/ventas/{venta}/edit', [VentaController::class, 'edit'])->name('ventas.edit');
     Route::put('/ventas/{venta}', [VentaController::class, 'update'])->name('ventas.update');
+
+    // Rutas para propietarios adicionales
+    Route::get('/clientes/buscar', [ClienteController::class, 'buscar']);
+    Route::get('/ventas/{venta}/propietarios-adicionales', [VentaController::class, 'getPropietariosAdicionales']);
+    Route::post('/ventas/{venta}/agregar-propietario', [VentaController::class, 'agregarPropietario']);
+    Route::delete('/propietarios-adicionales/{propietarioAdicional}', [PropietarioAdicionalController::class, 'destroy']);
+    
     // Cronograma de cotización (necesario para ver el PDF)
     Route::get('/cotizaciones/{cotizacion}/cronograma', [CotizacionController::class, 'cronograma'])->name('cotizaciones.cronograma');
 
@@ -96,6 +103,10 @@ Route::middleware(['auth', 'vendedor'])->group(function () {
 
     //Ventas-GenerarCronograma
     Route::get('ventas/{venta}/cronograma', [VentaController::class, 'cronograma'])->name('ventas.cronograma');
+
+    //Actualizar FEcha Cronograma
+    Route::post('/ventas/{venta}/actualizar-fecha-cronograma', [VentaController::class, 'actualizarFechaCronograma'])->name('ventas.actualizar-fecha-cronograma');
+
 
     //Imagenes superpuestas
     Route::post('/mapa/imagen-superpuesta/guardar', [MapImageController::class, 'guardarImagenSuperpuesta'])->name('imagen.superpuesta.guardar');

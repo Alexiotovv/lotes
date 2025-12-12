@@ -133,8 +133,28 @@
         <p>LA EMPRESA, {{ $empresa->nombre }}, IDENTIFICADO CON RUC N° {{ $empresa->ruc }}, CON DOMICILIO UBICADO EN LA {{ $empresa->direccion }}, DISTRITO DE {{ $empresa->distrito }}, PROVINCIA DE {{ $empresa->provincia }}, DEPARTAMENTO DE {{ $empresa->departamento }}.</p>
 
         <div class="section-title">Y DE OTRA PARTE:==================================================</div>
-        <p>Sr.(a). {{ $cliente->nombre_cliente }}, PERUANA DE NACIMIENTO, IDENTIFICADA CON DNI N° {{ $cliente->dni_ruc }}, CON DOMICILIO {{ $cliente->direccion ?? 'N/A' }}, DISTRITO {{ $cliente->distrito ?? 'N/A' }}, PROVINCIA {{ $cliente->provincia ?? 'N/A' }}, DEPARTAMENTO {{ $cliente->departamento ?? 'N/A' }}.</p>
+        
 
+        @php
+            // Obtener TODOS los propietarios (titular + adicionales)
+            $titular = $cliente;
+            $propietariosAdicionales = $venta->clientesAdicionales ?? collect();
+            $todosPropietarios = collect([$titular])->merge($propietariosAdicionales);
+        @endphp
+
+        @foreach($todosPropietarios as $index => $propietario)
+            @if($index === 0)
+                <p><strong>Sr.(a). {{ $propietario->nombre_cliente }}</strong>, PERUANA DE NACIMIENTO, IDENTIFICADA CON DNI N° {{ $propietario->dni_ruc }}, CON DOMICILIO {{ $propietario->direccion ?? 'N/A' }}, DISTRITO {{ $propietario->distrito ?? 'N/A' }}, PROVINCIA {{ $propietario->provincia ?? 'N/A' }}, DEPARTAMENTO {{ $propietario->departamento ?? 'N/A' }}.</p>
+            @else
+                <p><strong>Y TAMBIÉN Sr.(a). {{ $propietario->nombre_cliente }}</strong>, PERUANA DE NACIMIENTO, IDENTIFICADA CON DNI N° {{ $propietario->dni_ruc }}, CON DOMICILIO {{ $propietario->direccion ?? 'N/A' }}, DISTRITO {{ $propietario->distrito ?? 'N/A' }}, PROVINCIA {{ $propietario->provincia ?? 'N/A' }}, DEPARTAMENTO {{ $propietario->departamento ?? 'N/A' }}.</p>
+            @endif
+        @endforeach
+
+        {{-- @if($propietariosAdicionales->isNotEmpty())
+            <div style="margin-top: 10px; padding: 10px; background-color: #f8f9fa; border-left: 4px solid #007bff;">
+                <small><strong>Nota:</strong> Este contrato incluye {{ $propietariosAdicionales->count() }} propietario(s) adicional(es) además del titular.</small>
+            </div>
+        @endif --}}
 
 
         <div class="section-title">DE PARTE DEL VENDEDOR:============================================</div>

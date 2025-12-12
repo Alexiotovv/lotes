@@ -103,41 +103,7 @@ class VentaController extends Controller
             }
         }
 
-        // DB::transaction(function () use ($request, $esCredito) {
-        //     foreach ($request->detalles as $detalle) {
-        //         $lote = \App\Models\Lote::findOrFail($detalle['lote_id']);
-        //         $precioTotal = $lote->area_m2 * $lote->precio_m2;
-        //         $inicial = $request->inicial;
-        //         $montoFinanciar = max(0, $precioTotal - $inicial);
-        //         $nCuotas = $request->numero_cuotas ?? 0;
-        //         $tasaInteres = $request->tasa_interes;
-
-        //         // Calcular cuota solo si aplica
-        //         $cuota = 0;
-        //         if ($esCredito && $montoFinanciar > 0 && $nCuotas > 0) {
-        //             if ($tasaInteres > 0) {
-        //                 $tem = pow(1 + $tasaInteres, 1 / 12) - 1;
-        //                 $cuota = ($montoFinanciar * $tem * pow(1 + $tem, $nCuotas)) / (pow(1 + $tem, $nCuotas) - 1);
-        //             } else {
-        //                 $cuota = $montoFinanciar / $nCuotas;
-        //             }
-        //         }
-
-        //         $venta = \App\Models\Venta::create([
-        //             'user_id' => auth()->id(),
-        //             'cliente_id' => $request->cliente_id,
-        //             'lote_id' => $detalle['lote_id'],
-        //             'metodopago_id' => $request->metodopago_id,
-        //             'fecha_pago' => $request->fecha_pago,
-        //             'numero_cuotas' => $nCuotas,
-        //             'inicial' => $inicial,
-        //             'monto_financiar' => round($montoFinanciar, 2),
-        //             'tasa_interes' => $tasaInteres,
-        //             'cuota' => round($cuota, 2),
-        //             'observaciones' => $detalle['observaciones'] ?? null,
-        //             'cronograma_generado' => false,
-        //             'estado' => $esCredito ? 'vigente' : 'cerrado',
-        //         ]);
+        
 
         DB::transaction(function () use ($request, $esCredito) {
             foreach ($request->detalles as $detalle) {
@@ -207,6 +173,7 @@ class VentaController extends Controller
 
     public function generarCronograma(Venta $venta)
     {
+        // dd("test");
         if ($venta->cronograma_generado) {
             return back()->with('warning', 'El cronograma ya fue generado.');
         }
@@ -330,82 +297,7 @@ class VentaController extends Controller
 
         return redirect()->route('ventas.index')->with('success', 'Venta actualizada correctamente.');
     }
-    // public function update(Request $request, Venta $venta)
-    // {
-    //     if ($venta->cronograma_generado) {
-    //         return redirect()->route('ventas.index')->with('error', 'No se puede editar una venta con cronograma generado.');
-    //     }
-
-    //     $validated = $request->validate([
-    //         'cliente_id' => 'required|exists:clientes,id',
-    //         'metodopago_id' => 'required|exists:metodopagos,id',
-    //         'tasa_interes' => 'required|numeric|min:0|max:1',
-    //         'fecha_pago' => 'required|date',
-    //         'numero_cuotas' => 'required|integer|min:1',
-    //         'inicial' => 'required|numeric|min:0',
-    //         'lote_id' => 'required|exists:lotes,id',
-    //         'observaciones' => 'nullable|string|max:250',
-    //     ]);
-
-    //     // Verificar que el nuevo lote no esté vendido (excepto si es el mismo)
-    //     if ($venta->lote_id != $validated['lote_id']) {
-    //         $nuevoLote = Lote::findOrFail($validated['lote_id']);
-    //         if ($nuevoLote->estado_lote_id != 1) {
-    //             return back()->withErrors(['lote_id' => 'El lote seleccionado no está disponible.']);
-    //         }
-    //     }
-
-    //     DB::transaction(function() use ($venta, $validated) {
-    //         $loteNuevo = Lote::findOrFail($validated['lote_id']);
-    //         $precioTotal = $loteNuevo->area_m2 * $loteNuevo->precio_m2;
-    //         $inicial = $validated['inicial'];
-    //         $montoFinanciar = max(0, $precioTotal - $inicial);
-    //         $nCuotas = $validated['numero_cuotas'];
-    //         $tasaInteres = $validated['tasa_interes'];
-
-    //         $cuota = 0;
-    //         if ($montoFinanciar > 0 && $nCuotas > 0) {
-    //             if ($tasaInteres > 0) {
-    //                 $tem = pow(1 + $tasaInteres, 1/12) - 1;
-    //                 $cuota = ($montoFinanciar * $tem * pow(1 + $tem, $nCuotas)) / (pow(1 + $tem, $nCuotas) - 1);
-    //             } else {
-    //                 $cuota = $montoFinanciar / $nCuotas;
-    //             }
-    //         }
-
-    //         // ✅ 1. Verificar si el lote cambió ANTES de actualizar
-    //         $loteCambio = ($venta->lote_id != $validated['lote_id']);
-
-    //         // ✅ 2. Si cambia, revertir el lote anterior a "Disponible"
-    //         if ($loteCambio) {
-    //             $loteAnterior = Lote::find($venta->lote_id); // El actual antes del cambio
-    //             if ($loteAnterior) {
-    //                 $loteAnterior->update(['estado_lote_id' => 1]); // Disponible
-    //             }
-    //         }
-
-    //         // ✅ 3. Actualizar la venta
-    //         $venta->update([
-    //             'cliente_id' => $validated['cliente_id'],
-    //             'lote_id' => $validated['lote_id'],
-    //             'metodopago_id' => $validated['metodopago_id'],
-    //             'fecha_pago' => $validated['fecha_pago'],
-    //             'numero_cuotas' => $nCuotas,
-    //             'inicial' => $inicial,
-    //             'monto_financiar' => round($montoFinanciar, 2),
-    //             'tasa_interes' => $tasaInteres,
-    //             'cuota' => round($cuota, 2),
-    //             'observaciones' => $validated['observaciones'] ?? null,
-    //         ]);
-
-    //         // ✅ 4. Marcar el NUEVO lote como "Vendido"
-    //         if ($loteCambio) {
-    //             $loteNuevo->update(['estado_lote_id' => 3]); // Vendido
-    //         }
-    //     });
-
-    //     return redirect()->route('ventas.index')->with('success', 'Venta actualizada correctamente.');
-    // }
+    
 
     public function edit(Venta $venta)
     {
@@ -596,6 +488,137 @@ class VentaController extends Controller
         return response()->json([
             'success' => true,
             'message' => 'Cronograma eliminado correctamente.'
+        ]);
+    }
+
+
+    public function actualizarFechaCronograma(Request $request, Venta $venta)
+    {
+        // Verificar que la venta tenga cronograma
+        if (!$venta->cronograma_generado) {
+            return response()->json([
+                'success' => false,
+                'message' => 'La venta no tiene cronograma generado.'
+            ], 400);
+        }
+
+        // Verificar que el cronograma no esté agrupado
+        if ($venta->cronogramas()->whereNotNull('grupo_id')->exists()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'No se puede modificar un cronograma agrupado desde aquí.'
+            ], 400);
+        }
+
+        $request->validate([
+            'nueva_fecha' => 'required|date'
+        ]);
+
+        DB::beginTransaction();
+
+        try {
+            // Obtener cronogramas ordenados
+            $cronogramas = $venta->cronogramas()->orderBy('nro_cuota')->get();
+            
+            if ($cronogramas->isEmpty()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'No se encontraron cronogramas para esta venta.'
+                ], 404);
+            }
+
+            $nuevaFechaPrimerPago = Carbon::parse($request->nueva_fecha);
+            
+            // Cambiar TODAS las fechas del cronograma
+            foreach ($cronogramas as $cronograma) {
+                $nuevaFecha = $nuevaFechaPrimerPago->copy()->addMonths($cronograma->nro_cuota - 1);
+                $cronograma->update([
+                    'fecha_pago' => $nuevaFecha
+                ]);
+            }
+
+            // Actualizar la fecha en la venta también
+            $venta->update([
+                'fecha_pago' => $nuevaFechaPrimerPago
+            ]);
+
+            DB::commit();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Fechas del cronograma actualizadas correctamente.',
+                'nueva_fecha_inicio' => $nuevaFechaPrimerPago->format('d/m/Y')
+            ]);
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json([
+                'success' => false,
+                'message' => 'Error al actualizar las fechas: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+
+    // Obtener TODOS los propietarios (titular + adicionales) de una venta
+    public function getPropietariosAdicionales(Venta $venta)
+    {
+        // Obtener el cliente principal (titular)
+        $titular = [
+            'id' => $venta->cliente->id,
+            'nombre_cliente' => $venta->cliente->nombre_cliente,
+            'dni_ruc' => $venta->cliente->dni_ruc,
+            'es_titular' => true,
+            'titular_text' => ' (Titular)'
+        ];
+        
+        // Obtener propietarios adicionales
+        $propietariosAdicionales = $venta->clientesAdicionales()->get()
+            ->map(function ($cliente) {
+                return [
+                    'id' => $cliente->id,
+                    'nombre_cliente' => $cliente->nombre_cliente,
+                    'dni_ruc' => $cliente->dni_ruc,
+                    'es_titular' => false,
+                    'titular_text' => ' (Adicional)'
+                ];
+            });
+        
+        // Combinar titular + adicionales
+        $todosPropietarios = collect([$titular])->merge($propietariosAdicionales);
+        
+        return response()->json($todosPropietarios);
+    }
+
+    // Agregar propietario adicional
+    public function agregarPropietario(Request $request, Venta $venta)
+    {
+        $request->validate([
+            'cliente_id' => 'required|exists:clientes,id'
+        ]);
+
+        // Verificar que el cliente no sea el titular principal
+        if ($venta->cliente_id == $request->cliente_id) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Este cliente ya es el titular principal de la venta.'
+            ], 400);
+        }
+
+        // Verificar que no esté ya agregado
+        if ($venta->clientesAdicionales()->where('cliente_id', $request->cliente_id)->exists()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Este cliente ya está registrado como propietario adicional.'
+            ], 400);
+        }
+
+        // Agregar propietario
+        $venta->clientesAdicionales()->attach($request->cliente_id);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Propietario adicional agregado correctamente.'
         ]);
     }
 

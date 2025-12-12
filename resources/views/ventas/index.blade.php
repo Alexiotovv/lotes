@@ -49,6 +49,23 @@
         </thead>
         <tbody>
             @foreach($ventas as $v)
+                {{-- Verificar si el cronograma está agrupado --}}
+                @php
+                    // Obtener si el cronograma está agrupado
+                    $cronogramas = $v->cronogramas;
+                    $esAgrupado = false;
+                    $grupoId = null;
+                    
+                    if ($cronogramas->isNotEmpty()) {
+                        foreach ($cronogramas as $crono) {
+                            if (!empty($crono->grupo_id)) {
+                                $esAgrupado = true;
+                                $grupoId = $crono->grupo_id;
+                                break;
+                            }
+                        }
+                    }
+                @endphp
             <tr>
                 <td>{{ $v->id }}</td>
                 <td>{{ $v->cliente->dni_ruc }}</td>
@@ -81,25 +98,7 @@
                         <br>
                     @endif
 
-                    @if($v->cronograma_generado)
-                    {{-- Verificar si el cronograma está agrupado --}}
-                    @php
-                        // Obtener si el cronograma está agrupado
-                        $cronogramas = $v->cronogramas;
-                        $esAgrupado = false;
-                        $grupoId = null;
-                        
-                        if ($cronogramas->isNotEmpty()) {
-                            foreach ($cronogramas as $crono) {
-                                if (!empty($crono->grupo_id)) {
-                                    $esAgrupado = true;
-                                    $grupoId = $crono->grupo_id;
-                                    break;
-                                }
-                            }
-                        }
-                    @endphp
-                    
+                @if($v->cronograma_generado)
                     @if($esAgrupado)
                         <button type="button" class="btn btn-outline-info btn-sm" onclick="" disabled>
                             📋 C.Agrupado
@@ -240,15 +239,76 @@
     <div class="modal-dialog modal-xl">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title">Contratos de la Venta</h5>
+                <h5 class="modal-title">Contratos de la Venta #<span id="ventaIdContratos"></span></h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
-                <div id="listaContratos"></div>
+                <div id="listaContratos">
+                    <div class="text-center">
+                        <div class="spinner-border"></div> Cargando...
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                <button type="button" class="btn btn-outline-info" id="btnAgregarPropietario" style="display:none;">
+                    👥 Agregar Propietario
+                </button>
             </div>
         </div>
     </div>
 </div>
+
+<!-- Modal para agregar propietarios adicionales -->
+<div class="modal fade" id="modalAgregarPropietario" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-info text-white">
+                <h5 class="modal-title">Agregar Propietario Adicional</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="formAgregarPropietario">
+                    <div class="mb-3">
+                        <label class="form-label">Buscar cliente por DNI/RUC o nombre:</label>
+                        <div class="input-group">
+                            <input type="text" id="buscarCliente" class="form-control" 
+                                   placeholder="Ingrese DNI/RUC o nombre..."
+                                   onkeyup="buscarClientes(this.value)">
+                            <span class="input-group-text">🔍</span>
+                        </div>
+                        <div id="resultadosBusqueda" class="mt-2" style="max-height: 200px; overflow-y: auto; display: none;">
+                            <!-- Resultados de búsqueda aparecerán aquí -->
+                        </div>
+                    </div>
+                    
+                    <div id="clienteSeleccionadoInfo" class="alert alert-success" style="display: none;">
+                        <strong>Cliente seleccionado:</strong>
+                        <div id="clienteInfo"></div>
+                        <input type="hidden" id="cliente_id">
+                    </div>
+                    
+                    <div class="alert alert-warning">
+                        <small><i class="fas fa-info-circle"></i> El cliente será agregado como propietario adicional de esta venta.</small>
+                    </div>
+                    
+                    <div class="text-center">
+                        <button type="submit" class="btn btn-info w-100" id="btnGuardarPropietario" disabled>
+                            ✅ Agregar Propietario
+                        </button>
+                    </div>
+                </form>
+                
+                <!-- Lista de propietarios actuales -->
+                <div id="listaPropietariosActuales" class="mt-4" style="display: none;">
+                    <h6>Propietarios actuales:</h6>
+                    <div id="propietariosLista"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
 
 
 <!-- Modal para mostrar cronograma -->
@@ -268,6 +328,9 @@
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                <button type="button" class="btn btn-warning" id="btnCambiarFecha" style="display:none;">
+                    📅 Cambiar Fecha Inicio
+                </button>
                 <a href="#" id="btnImprimirCronograma" target="_blank" class="btn btn-outline-primary">🖨️ Imprimir</a>
                 <button type="button" class="btn btn-danger" 
                         id="btnEliminarCronograma" 
@@ -280,14 +343,46 @@
         </div>
     </div>
 </div>
+
+<!-- Modal para cambiar fecha de inicio -->
+<div class="modal fade" id="modalCambiarFecha" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-sm">
+        <div class="modal-content">
+            <div class="modal-header bg-warning">
+                <h5 class="modal-title">Cambiar Fecha de Inicio</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="formCambiarFecha">
+                    <div class="mb-3">
+                        <label class="form-label">Nueva fecha del primer pago:</label>
+                        <input type="date" id="nuevaFechaInicio" class="form-control" required>
+                        <small class="text-muted">Todas las cuotas se ajustarán manteniendo el intervalo mensual.</small>
+                    </div>
+                    <div class="text-center">
+                        <button type="submit" class="btn btn-warning w-100">📅 Actualizar Fechas</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+
 @endsection
 
 @section('scripts')
     <script>
         // ✅ Función para mostrar cronograma en modal
         function mostrarCronograma(ventaId) {
+            window.ventaIdActual = ventaId; // Guardar para usar en otras funciones
+            
             const contenedor = document.getElementById('detalleCronograma');
             contenedor.innerHTML = '<div class="text-center"><div class="spinner-border"></div> Cargando...</div>';
+            
+            // Ocultar botones inicialmente
+            document.getElementById('btnCambiarFecha').style.display = 'none';
+            document.getElementById('btnEliminarCronograma').style.display = 'none';
 
             // ✅ Actualizar enlace de impresión
             document.getElementById('btnImprimirCronograma').href = `/ventas/${ventaId}/cronograma`;
@@ -299,7 +394,6 @@
 
                     if (data.cronogramas.length === 0) {
                         contenedor.innerHTML = '<div class="alert alert-info">No hay cronogramas registrados para esta venta.</div>';
-                        document.getElementById('btnEliminarCronograma').style.display = 'none';
                         return;
                     }
 
@@ -307,15 +401,28 @@
                     const totalCuotas = data.cronogramas.length;
                     const fechaInicio = data.cronogramas[0]?.fecha_pago || 'N/A';
                     const tienePagos = data.tiene_pagos;
+                    const esAgrupado = data.es_agrupado;
 
                     let html = `
-                        <div class="alert alert-info">
-                            <strong>Resumen del Cronograma:</strong><br>
+                        <div class="alert ${esAgrupado ? 'alert-warning' : 'alert-info'}">
+                            <strong>${esAgrupado ? '📋 CRONOGRAMA AGRUPADO' : 'Resumen del Cronograma:'}</strong><br>
                             • Total de Cuotas: ${totalCuotas}<br>
                             • Fecha de Inicio: ${fechaInicio}<br>
                             • Venta ID: ${ventaId}
-                        </div>
                     `;
+                    
+                    if (esAgrupado) {
+                        html += `<br>• Grupo ID: ${data.grupo_id}<br>• <em>Este cronograma forma parte de un grupo agrupado</em>`;
+                    }
+                    
+                    html += `</div>`;
+
+                    // Mostrar botón de cambiar fecha solo si NO es agrupado
+                    if (!esAgrupado) {
+                        document.getElementById('btnCambiarFecha').style.display = 'inline-block';
+                        // Asignar la fecha actual como valor por defecto
+                        document.getElementById('nuevaFechaInicio').value = convertirFechaFormatoInput(fechaInicio);
+                    }
 
                     // Tabla de cronograma
                     html += `
@@ -381,6 +488,18 @@
                         contenedor.innerHTML = '<div class="alert alert-danger">Error al cargar el cronograma.</div>';
                     });
         }
+
+        // Función auxiliar para convertir fecha (dd/mm/yyyy) a formato input (yyyy-mm-dd)
+        function convertirFechaFormatoInput(fechaString) {
+            if (!fechaString) return '';
+            const parts = fechaString.split('/');
+            if (parts.length === 3) {
+                return `${parts[2]}-${parts[1].padStart(2, '0')}-${parts[0].padStart(2, '0')}`;
+            }
+            return fechaString;
+        }
+
+
 
         // ✅ Función para eliminar cronograma
         let ventaIdAEliminar = null; // Variable global temporal
@@ -495,6 +614,9 @@
 
         // Función para mostrar contratos
         function mostrarContratos(ventaId) {
+            window.ventaContratoActual = ventaId; // Guardar para usar en otras funciones
+            document.getElementById('ventaIdContratos').textContent = ventaId;
+            
             fetch(`/contratos?venta_id=${ventaId}`)
                 .then(response => response.json())
                 .then(contratos => {
@@ -503,17 +625,24 @@
 
                     if (contratos.length === 0) {
                         contenedor.innerHTML = '<div class="alert alert-info">No se han generado contratos para esta venta.</div>';
+                        document.getElementById('btnAgregarPropietario').style.display = 'none';
                         return;
                     }
 
-                    let html = '<div class="table-responsive"><table class="table table-bordered"><thead class="table-dark"><tr><th>ID</th><th>Fecha</th><th>Estado</th><th>Acciones</th></tr></thead><tbody>';
+                    let html = '<div class="table-responsive"><table class="table table-bordered"><thead class="table-dark"><tr><th>ID</th><th>Fecha</th><th>Estado</th><th>Propietarios</th><th>Acciones</th></tr></thead><tbody>';
+                    
                     contratos.forEach(c => {
                         const estado = c.activo ? '<span class="badge bg-success">Activo</span>' : '<span class="badge bg-danger">Anulado</span>';
+                        
+                        // Obtener propietarios para este contrato
                         html += `
                             <tr>
                                 <td>${c.id}</td>
                                 <td>${new Date(c.created_at).toLocaleString()}</td>
                                 <td>${estado}</td>
+                                <td id="propietarios-${c.id}">
+                                    <div class="spinner-border spinner-border-sm"></div>
+                                </td>
                                 <td>
                                     <a href="${c.url}" target="_blank" class="btn btn-sm btn-outline-primary">Ver</a>
                                     ${c.activo ? `<button type="button" class="btn btn-sm btn-outline-danger" 
@@ -526,13 +655,23 @@
                                             ✕ Eliminar
                                         </button>
                                     `}
-                                    
                                 </td>
                             </tr>`;
                     });
+                    
                     html += '</tbody></table></div>';
-
                     contenedor.innerHTML = html;
+
+                    // Mostrar botón para agregar propietario
+                    document.getElementById('btnAgregarPropietario').style.display = 'inline-block';
+                    
+                    // Cargar propietarios para cada contrato
+                    contratos.forEach(c => {
+                        cargarPropietariosContrato(c.id, ventaId);
+                    });
+
+                    // Cargar propietarios actuales para el modal
+                    cargarPropietariosActuales(ventaId);
 
                     // Mostrar modal
                     const modal = new bootstrap.Modal(document.getElementById('modalContratos'));
@@ -543,6 +682,294 @@
                     alert('Error al cargar los contratos.');
                 });
         }
+
+
+        // Función para cargar propietarios de un contrato
+        function cargarPropietariosContrato(contratoId, ventaId) {
+            fetch(`/ventas/${ventaId}/propietarios-adicionales`)
+                .then(response => response.json())
+                .then(data => {
+                    const celda = document.getElementById(`propietarios-${contratoId}`);
+                    let html = '';
+                    
+                    if (data.length === 0) {
+                        html = '<span class="badge bg-secondary">No hay propietarios</span>';
+                    } else {
+                        data.forEach(prop => {
+                            const badgeColor = prop.es_titular ? 'primary' : 'info';
+                            const badgeText = prop.es_titular ? 'Propietario1' : 'Propietario2';
+                            
+                            html += `
+                                <div class="d-flex justify-content-between align-items-center mb-1">
+                                    <div>
+                                        <small>${prop.nombre_cliente}</small><br>
+                                        <small class="text-muted">${prop.dni_ruc}</small>
+                                    </div>
+                                    <span class="badge bg-${badgeColor}">${badgeText}</span>
+                                </div>`;
+                        });
+                    }
+                    
+                    celda.innerHTML = html;
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    const celda = document.getElementById(`propietarios-${contratoId}`);
+                    celda.innerHTML = '<span class="badge bg-warning">Error al cargar</span>';
+                });
+        }
+
+        // Función para cargar propietarios actuales para el modal
+        function cargarPropietariosActuales(ventaId) {
+            fetch(`/ventas/${ventaId}/propietarios-adicionales`)
+                .then(response => response.json())
+                .then(data => {
+                    const contenedor = document.getElementById('propietariosLista');
+                    
+                    if (data.length === 0) {
+                        contenedor.innerHTML = '<div class="alert alert-info">No hay propietarios registrados.</div>';
+                    } else {
+                        let html = '<div class="list-group">';
+                        data.forEach(prop => {
+                            const esEliminable = !prop.es_titular; // Solo se puede eliminar propietarios adicionales
+                            
+                            html += `
+                                <div class="list-group-item d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <strong>${prop.nombre_cliente}</strong>
+                                        <span class="badge ${prop.es_titular ? 'bg-primary' : 'bg-info'} ms-2">
+                                            ${prop.es_titular ? 'Titular' : 'Adicional'}
+                                        </span><br>
+                                        <small>DNI/RUC: ${prop.dni_ruc}</small>
+                                    </div>
+                                    ${esEliminable ? 
+                                        `<button type="button" class="btn btn-sm btn-outline-danger" 
+                                                onclick="eliminarPropietario(${prop.id}, '{{ csrf_token() }}')">
+                                            ✕
+                                        </button>` : 
+                                        '<span class="badge bg-secondary">Principal</span>'
+                                    }
+                                </div>`;
+                        });
+                        html += '</div>';
+                        contenedor.innerHTML = html;
+                        document.getElementById('listaPropietariosActuales').style.display = 'block';
+                    }
+                });
+        }
+
+        // Manejar clic en botón "Cambiar Fecha Inicio"
+        document.getElementById('btnCambiarFecha').addEventListener('click', function() {
+            const modal = new bootstrap.Modal(document.getElementById('modalCambiarFecha'));
+            modal.show();
+        });
+
+        // Manejar envío del formulario de cambio de fecha
+        document.getElementById('formCambiarFecha').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const ventaId = window.ventaIdActual;
+            const nuevaFecha = document.getElementById('nuevaFechaInicio').value;
+            
+            if (!nuevaFecha) {
+                alert('Por favor seleccione una fecha válida.');
+                return;
+            }
+            
+            if (!confirm(`¿Cambiar la fecha de inicio del cronograma a ${nuevaFecha}?\n\nTodas las fechas de las cuotas se ajustarán automáticamente en orden mensual.`)) {
+                return;
+            }
+            
+            const btn = this.querySelector('button[type="submit"]');
+            const originalText = btn.innerHTML;
+            btn.disabled = true;
+            btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Actualizando...';
+            
+            fetch(`/ventas/${ventaId}/actualizar-fecha-cronograma`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json',
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                },
+                body: JSON.stringify({
+                    nueva_fecha: nuevaFecha
+                })
+            })
+            .then(response => {
+                if (!response.ok) {
+                    return response.json().then(err => { throw err; });
+                }
+                return response.json();
+            })
+            .then(data => {
+                if (data.success) {
+                    alert('✅ ' + data.message);
+                    // Cerrar ambos modales
+                    bootstrap.Modal.getInstance(document.getElementById('modalCambiarFecha')).hide();
+                    bootstrap.Modal.getInstance(document.getElementById('modalCronograma')).hide();
+                    // Recargar la página para ver los cambios
+                    location.reload();
+                } else {
+                    alert('❌ ' + data.message);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('❌ Error al actualizar las fechas: ' + (error.message || 'Error desconocido'));
+            })
+            .finally(() => {
+                btn.disabled = false;
+                btn.innerHTML = originalText;
+            });
+        });
+
+
+        // Función para buscar clientes (modificada)
+        function buscarClientes(termino) {
+            if (termino.length < 2) {
+                document.getElementById('resultadosBusqueda').style.display = 'none';
+                return;
+            }
+            
+            fetch(`/clientes/buscar?q=${encodeURIComponent(termino)}`)
+                .then(response => response.json())
+                .then(clientes => {
+                    const resultados = document.getElementById('resultadosBusqueda');
+                    
+                    if (clientes.length === 0) {
+                        resultados.innerHTML = '<div class="alert alert-warning">No se encontraron clientes.</div>';
+                        resultados.style.display = 'block';
+                        return;
+                    }
+                    
+                    // Filtrar para excluir al cliente titular actual
+                    let html = '<div class="list-group">';
+                    clientes.forEach(cliente => {
+                        html += `
+                            <button type="button" class="list-group-item list-group-item-action" 
+                                    onclick="seleccionarCliente(${cliente.id}, '${cliente.nombre_cliente.replace(/'/g, "\\'")}', '${cliente.dni_ruc.replace(/'/g, "\\'")}')">
+                                <strong>${cliente.nombre_cliente}</strong><br>
+                                <small>DNI/RUC: ${cliente.dni_ruc}</small>
+                            </button>`;
+                    });
+                    html += '</div>';
+                    
+                    resultados.innerHTML = html;
+                    resultados.style.display = 'block';
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    resultados.innerHTML = '<div class="alert alert-danger">Error al buscar clientes.</div>';
+                    resultados.style.display = 'block';
+                });
+        }
+
+        // Función para seleccionar un cliente
+        function seleccionarCliente(id, nombre, dni) {
+            document.getElementById('cliente_id').value = id;
+            document.getElementById('clienteInfo').innerHTML = `
+                ${nombre} (DNI/RUC: ${dni})
+            `;
+            document.getElementById('clienteSeleccionadoInfo').style.display = 'block';
+            document.getElementById('resultadosBusqueda').style.display = 'none';
+            document.getElementById('btnGuardarPropietario').disabled = false;
+        }
+
+        // Manejar envío del formulario para agregar propietario
+        document.getElementById('formAgregarPropietario').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const ventaId = window.ventaContratoActual;
+            const clienteId = document.getElementById('cliente_id').value;
+            
+            if (!clienteId) {
+                alert('Por favor seleccione un cliente.');
+                return;
+            }
+            
+            const btn = document.getElementById('btnGuardarPropietario');
+            const originalText = btn.innerHTML;
+            btn.disabled = true;
+            btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Agregando...';
+            
+            fetch(`/ventas/${ventaId}/agregar-propietario`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json',
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                },
+                body: JSON.stringify({
+                    cliente_id: clienteId
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert('✅ ' + data.message);
+                    // Limpiar formulario
+                    document.getElementById('buscarCliente').value = '';
+                    document.getElementById('clienteSeleccionadoInfo').style.display = 'none';
+                    document.getElementById('btnGuardarPropietario').disabled = true;
+                    
+                    // Recargar listas
+                    cargarPropietariosActuales(ventaId);
+                    
+                    // Recargar la lista de contratos
+                    mostrarContratos(ventaId);
+                } else {
+                    alert('❌ ' + data.message);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('❌ Error al agregar propietario.');
+            })
+            .finally(() => {
+                btn.disabled = false;
+                btn.innerHTML = originalText;
+            });
+        });
+
+        // Función para eliminar propietario
+        function eliminarPropietario(propietarioId, csrfToken) {
+            if (!confirm('¿Está seguro de eliminar este propietario adicional?')) {
+                return;
+            }
+            
+            fetch(`/propietarios-adicionales/${propietarioId}`, {
+                method: 'DELETE',
+                headers: {
+                    'X-CSRF-TOKEN': csrfToken,
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json',
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert('✅ ' + data.message);
+                    // Recargar listas
+                    cargarPropietariosActuales(window.ventaContratoActual);
+                    mostrarContratos(window.ventaContratoActual);
+                } else {
+                    alert('❌ ' + data.message);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('❌ Error al eliminar propietario.');
+            });
+        }
+
+        // Manejar clic en botón "Agregar Propietario"
+        document.getElementById('btnAgregarPropietario').addEventListener('click', function() {
+            const modal = new bootstrap.Modal(document.getElementById('modalAgregarPropietario'));
+            modal.show();
+        });
+
+
 
 
     </script>
@@ -571,4 +998,6 @@
             modal.show();
         });
     </script>
+
+    
 @endsection

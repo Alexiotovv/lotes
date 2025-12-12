@@ -62,4 +62,23 @@ class ClienteController extends Controller
         $cliente->delete();
         return redirect()->route('clientes.index')->with('success', 'Cliente eliminado correctamente.');
     }
+    // En ClienteController.php
+    public function buscar(Request $request)
+    {
+        $q = $request->input('q', '');
+        
+        if (strlen($q) < 2) {
+            return response()->json([]);
+        }
+        
+        $clientes = Cliente::where(function($query) use ($q) {
+                $query->where('nombre_cliente', 'LIKE', "%{$q}%")
+                    ->orWhere('dni_ruc', 'LIKE', "%{$q}%");
+            })
+            ->select('id', 'nombre_cliente', 'dni_ruc')
+            ->limit(10)
+            ->get();
+        
+        return response()->json($clientes);
+    }
 }
